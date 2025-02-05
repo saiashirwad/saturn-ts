@@ -10,30 +10,22 @@ function Editor() {
   const [code, setCode] = useState('"hi"')
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="p-5">
       <h1>QuickJS Playground</h1>
       <textarea
         value={code}
         onChange={(e) => setCode(e.target.value)}
-        style={{
-          width: "100%",
-          height: "200px",
-          fontFamily: "monospace",
-          marginBottom: "10px",
-        }}
+        className="w-full h-[200px] font-mono mb-2.5"
       />
       <div>
-        <button onClick={() => evalCode(code)}>Run Code</button>
+        <button
+          onClick={() => evalCode(code)}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Run Code
+        </button>
       </div>
-      <div
-        style={{
-          marginTop: "20px",
-          padding: "10px",
-          backgroundColor: "#f5f5f5",
-          borderRadius: "4px",
-          fontFamily: "monospace",
-        }}
-      >
+      <div className="mt-5 p-2.5 bg-gray-100 rounded font-mono">
         <pre>Output: {JSON.stringify(output, null, 2)}</pre>
       </div>
     </div>
@@ -43,7 +35,7 @@ function Editor() {
 function App() {
   return (
     <Suspense>
-      <SaturnProvider>
+      <SaturnProvider initialCode={5}>
         <Editor />
       </SaturnProvider>
     </Suspense>

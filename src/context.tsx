@@ -4,8 +4,13 @@ import { RxSaturnHandle, saturnHandleRx } from "./services/runtime"
 
 export const SaturnContext = createContext<RxSaturnHandle>(null as any)
 
-export function SaturnProvider({ children }: React.PropsWithChildren<{}>) {
-  const { value } = useRxSuspenseSuccess(saturnHandleRx({}))
+export function SaturnProvider({
+  children,
+  initialCode,
+}: React.PropsWithChildren<{
+  initialCode: string
+}>) {
+  const { value } = useRxSuspenseSuccess(saturnHandleRx({ initialCode }))
   return (
     <SaturnContext.Provider value={value}>{children}</SaturnContext.Provider>
   )

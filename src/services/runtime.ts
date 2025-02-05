@@ -8,32 +8,33 @@ export const runtime = Rx.runtime(
   Layer.mergeAll(FetchHttpClient.layer, QuickJS.Default),
 )
 
-export const saturnHandleRx = Rx.family(() =>
-  runtime.rx((ctx) =>
-    Effect.gen(function* () {
-      const quickjs = yield* QuickJS
+export const saturnHandleRx = Rx.family(
+  ({ initialCode }: { initialCode: string }) =>
+    runtime.rx((ctx) =>
+      Effect.gen(function* () {
+        const quickjs = yield* QuickJS
 
-      const output = Rx.writable<any, any>(
-        () => "2",
-        (ctx, value: string) => ctx.setSelf(value),
-      )
+        const initialOutput = yield* quickjs.evalCode(initialCode)
 
-      const evalCode = Rx.fn((code: string) =>
-        Effect.gen(function* () {
-          console.log(code)
-          const result = yield* quickjs.evalCode(code)
-          console.log(result)
-          yield* ctx.set(output, result)
-          return result
-        }),
-      )
+        const output = Rx.writable<any, any>(
+          () => initialOutput,
+          (ctx, value: string) => ctx.setSelf(value),
+        )
 
-      return {
-        output,
-        evalCode,
-      } as const
-    }),
-  ),
+        const evalCode = Rx.fn((code: string) =>
+          Effect.gen(function* () {
+            const result = yield* quickjs.evalCode(code)
+            yield* ctx.set(output, result)
+            return result
+          }),
+        )
+
+        return {
+          output,
+          evalCode,
+        } as const
+      }),
+    ),
 )
 
 export interface RxSaturnHandle
