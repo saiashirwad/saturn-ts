@@ -12,7 +12,10 @@
   "dependencies": {
     "@effect-rx/rx-react": "^0.31.8",
     "@effect/monaco-editor": "^0.0.2",
+    "@effect/platform": "^0.75.3",
+    "@effect/platform-browser": "^0.54.3",
     "effect": "^3.12.9",
+    "quickjs-emscripten": "^0.31.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
