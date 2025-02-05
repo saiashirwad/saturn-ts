@@ -1,0 +1,29 @@
+{
+  "name": "saturn-ts",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "biome check --write .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@effect-rx/rx-react": "^0.31.8",
+    "@effect/monaco-editor": "^0.0.2",
+    "effect": "^3.12.9",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.3",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "globals": "^15.14.0",
+    "tailwindcss": "^4.0.3",
+    "typescript": "~5.7.2",
+    "vite": "^6.1.0"
+  }
+}
