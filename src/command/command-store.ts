@@ -14,11 +14,20 @@ interface CommandState {
   searchQuery: string
 }
 
+interface CommandPaletteState {
+  isOpen: boolean
+}
+
 type CommandStore = CommandState & {
   registerCommand: (command: Command) => void
   unregisterCommand: (id: string) => void
   setSearchQuery: (query: string) => void
   getFilteredCommands: () => Command[]
+}
+
+type CommandPaletteStore = CommandPaletteState & {
+  setIsOpen: (isOpen: boolean) => void
+  toggle: () => void
 }
 
 export function registerGlobalVariable(name: string, value: any) {
@@ -64,5 +73,19 @@ export const useCommandStore = create<CommandStore>()(
           cmd.description?.toLowerCase().includes(query),
       )
     },
+  })),
+)
+
+export const useCommandPaletteStore = create<CommandPaletteStore>()(
+  immer((set) => ({
+    isOpen: false,
+    setIsOpen: (isOpen) =>
+      set((state) => {
+        state.isOpen = isOpen
+      }),
+    toggle: () =>
+      set((state) => {
+        state.isOpen = !state.isOpen
+      }),
   })),
 )

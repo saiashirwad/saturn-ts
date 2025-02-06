@@ -1,7 +1,11 @@
 import type { editor } from "monaco-editor"
+import * as monaco from "monaco-editor"
 import * as React from "react"
 import { memo, useCallback, useRef } from "react"
-import { registerGlobalVariable } from "../command/command-store"
+import {
+  registerGlobalVariable,
+  useCommandPaletteStore,
+} from "../command/command-store"
 import { Monaco } from "../monaco/monaco-editor"
 import { evaluateCode } from "../quickjs"
 import { type Cell as CellType, useNotebookStore } from "./notebook-store"
@@ -16,13 +20,58 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
   ({ cell, isFocused }, ref) => {
     const updateCell = useNotebookStore((state) => state.updateCell)
     const globals = useNotebookStore((state) => state.globalObject)
+    const setIsOpen = useCommandPaletteStore((state) => state.setIsOpen)
     const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
 
     const handleEditorDidMount = useCallback(
       (editor: editor.IStandaloneCodeEditor) => {
         editorRef.current = editor
+
+        editor.addCommand(
+          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF,
+          () => {},
+          "",
+        )
+
+        monaco.editor.addKeybindingRule({
+          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF,
+          command: null,
+        })
+
+        editor.addCommand(
+          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
+          () => {
+            setIsOpen(true)
+          },
+          "",
+        )
+
+        editor.addCommand(
+          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP,
+          () => {},
+          "",
+        )
+        editor.addCommand(
+          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyJ,
+          () => {},
+          "",
+        )
+
+        // Keep the keybinding rules to prevent Monaco's default behaviors
+        monaco.editor.addKeybindingRule({
+          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
+          command: null,
+        })
+        monaco.editor.addKeybindingRule({
+          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP,
+          command: null,
+        })
+        monaco.editor.addKeybindingRule({
+          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyJ,
+          command: null,
+        })
       },
-      [],
+      [setIsOpen],
     )
 
     React.useEffect(() => {

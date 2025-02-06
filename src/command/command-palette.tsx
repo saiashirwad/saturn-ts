@@ -9,10 +9,12 @@ import {
   CommandList,
 } from "../components/ui/command"
 import { useNotebookStore } from "../notebook/notebook-store"
-import { useCommandStore } from "./command-store"
+import { useCommandPaletteStore, useCommandStore } from "./command-store"
 
 export function CommandPalette() {
-  const [open, setOpen] = React.useState(false)
+  const isOpen = useCommandPaletteStore((state) => state.isOpen)
+  const setIsOpen = useCommandPaletteStore((state) => state.setIsOpen)
+  const commands = useCommandStore((state) => state.getFilteredCommands())
   const addCell = useNotebookStore((state) => state.addCell)
   const cells = useNotebookStore((state) => state.cells)
   const setFocusedCell = useNotebookStore((state) => state.setFocusedCell)
@@ -29,7 +31,7 @@ export function CommandPalette() {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
-        setOpen((open) => !open)
+        setIsOpen(true)
       }
     }
 
@@ -37,8 +39,8 @@ export function CommandPalette() {
     return () => document.removeEventListener("keydown", down)
   }, [])
 
-  return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
+  return isOpen ? (
+    <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
@@ -46,7 +48,7 @@ export function CommandPalette() {
           <CommandItem
             onSelect={() => {
               addCell("code")
-              setOpen(false)
+              setIsOpen(false)
             }}
           >
             <Search className="w-4 h-4 mr-2" />
@@ -60,7 +62,7 @@ export function CommandPalette() {
               key={cell.id}
               onSelect={() => {
                 setFocusedCell(cell.id)
-                setOpen(false)
+                setIsOpen(false)
               }}
               className="flex justify-between items-center"
             >
@@ -79,7 +81,7 @@ export function CommandPalette() {
               key={name}
               onSelect={() => {
                 // Could add action here if needed
-                setOpen(false)
+                setIsOpen(false)
               }}
               className="flex justify-between items-center"
             >
@@ -94,6 +96,7 @@ export function CommandPalette() {
           ))}
         </CommandGroup>
       </CommandList>
+      <button onClick={() => setIsOpen(false)}>Close</button>
     </CommandDialog>
-  )
+  ) : null
 }
