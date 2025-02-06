@@ -1,34 +1,9 @@
 import { memo, useCallback } from "react"
-import { Monaco } from "./monaco/monaco-editor"
-import { evaluateCode } from "./quickjs"
-import { type Cell, useNotebookStore } from "./store"
+import { Monaco } from "../monaco/monaco-editor"
+import { evaluateCode } from "../quickjs"
+import { type Cell as CellType, useNotebookStore } from "../store"
 
-export function Notebook() {
-  const cells = useNotebookStore((state) => state.cells)
-  const addCell = useNotebookStore((state) => state.addCell)
-
-  return (
-    <div className="min-h-screen bg-white dark:bg-[#1e1e1e] text-gray-800 dark:text-gray-300">
-      <div className="flex items-center justify-between px-2 py-1 border-b border-gray-200 dark:border-gray-700">
-        <button
-          className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-          onClick={() => addCell("code")}
-          title="Add cell"
-        >
-          +
-        </button>
-      </div>
-
-      <div className="flex flex-col w-full">
-        {cells.map((cell, index) => (
-          <Cell key={cell.id} cell={cell} index={index + 1} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-const Cell = memo((props: { cell: Cell; index: number }) => {
+export const CodeCell = memo((props: { cell: CellType; index: number }) => {
   const updateCell = useNotebookStore((state) => state.updateCell)
   const globals = useNotebookStore((state) => state.globalObject)
 
@@ -75,7 +50,7 @@ const Cell = memo((props: { cell: Cell; index: number }) => {
   )
 })
 
-async function runCode(
+export async function runCode(
   code: string,
   globals: Record<string, any>,
   onResult: (result: {

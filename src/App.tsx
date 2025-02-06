@@ -1,4 +1,4 @@
-import { Notebook } from "./notebook"
+import { Notebook } from "./notebook/notebook"
 import { initializeTheme } from "./lib/theme"
 
 initializeTheme()
