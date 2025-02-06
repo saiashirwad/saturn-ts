@@ -53,27 +53,24 @@ export function CommandPalette() {
         </CommandGroup>
 
         <CommandGroup heading="Global Variables">
-          {Object.entries(globals).map(([name, value]) => {
-            console.log(value)
-            return (
-              <CommandItem
-                key={name}
-                onSelect={() => {
-                  // Could add action here if needed
-                  setOpen(false)
-                }}
-                className="flex justify-between items-center"
-              >
-                <div className="flex items-center">
-                  <Variable className="w-4 h-4 mr-2 text-blue-500" />
-                  <span className="font-mono">{name}</span>
-                </div>
-                <span className="text-xs opacity-75 text-blue-500 font-mono">
-                  global
-                </span>
-              </CommandItem>
-            )
-          })}
+          {Object.entries(globals).map(([name, _]) => (
+            <CommandItem
+              key={name}
+              onSelect={() => {
+                // Could add action here if needed
+                setOpen(false)
+              }}
+              className="flex justify-between items-center"
+            >
+              <div className="flex items-center">
+                <Variable className="w-4 h-4 mr-2 text-blue-500" />
+                <span className="font-mono">{name}</span>
+              </div>
+              <span className="text-xs opacity-75 text-blue-500 font-mono">
+                global
+              </span>
+            </CommandItem>
+          ))}
         </CommandGroup>
       </CommandList>
     </CommandDialog>
