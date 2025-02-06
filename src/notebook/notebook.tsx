@@ -1,6 +1,6 @@
-import { useNotebookStore } from "../store"
-import { CommandPalette } from "../components/CommandPalette"
-import { CodeCell } from "./Cell"
+import { useNotebookStore } from "./notebook-store"
+import { CommandPalette } from "../command/command-palette"
+import { CodeCell } from "./code-cell"
 
 export function Notebook() {
   const cells = useNotebookStore((state) => state.cells)

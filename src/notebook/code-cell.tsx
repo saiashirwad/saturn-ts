@@ -1,7 +1,8 @@
 import { memo, useCallback } from "react"
 import { Monaco } from "../monaco/monaco-editor"
 import { evaluateCode } from "../quickjs"
-import { type Cell as CellType, useNotebookStore } from "../store"
+import { type Cell as CellType, useNotebookStore } from "./notebook-store"
+import { registerGlobalVariable } from "../command/command-store"
 
 export const CodeCell = memo((props: { cell: CellType; index: number }) => {
   const updateCell = useNotebookStore((state) => state.updateCell)
@@ -11,6 +12,9 @@ export const CodeCell = memo((props: { cell: CellType; index: number }) => {
     (code: string) =>
       runCode(code, globals, (result) => {
         updateCell(props.cell.id, { output: result.output })
+        for (const [key, value] of Object.entries(result.output)) {
+          registerGlobalVariable(key, value)
+        }
       }),
     [props.cell.id, updateCell, globals],
   )

@@ -1,0 +1,91 @@
+import { Search, Variable } from "lucide-react"
+import * as React from "react"
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../components/ui/command"
+import { useNotebookStore } from "../notebook/notebook-store"
+import { cn } from "../utils/cn"
+import { useCommandStore } from "./command-store"
+
+export function CommandPalette() {
+  const [open, setOpen] = React.useState(false)
+  const addCell = useNotebookStore((state) => state.addCell)
+  const globalVariables = useCommandStore((state) => state.commands)
+  const globals = React.useMemo(() => {
+    return Object.fromEntries(
+      globalVariables
+        .filter((cmd) => cmd.category === "global")
+        .map((cmd) => [cmd.name, cmd.handler]),
+    )
+  }, [globalVariables])
+
+  React.useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setOpen((open) => !open)
+      }
+    }
+
+    document.addEventListener("keydown", down)
+    return () => document.removeEventListener("keydown", down)
+  }, [])
+
+  return (
+    <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandInput placeholder="Type a command or search..." />
+      <CommandList>
+        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandGroup heading="Actions">
+          <CommandItem
+            onSelect={() => {
+              addCell("code")
+              setOpen(false)
+            }}
+          >
+            <Search className="w-4 h-4 mr-2" />
+            Add Code Cell
+          </CommandItem>
+        </CommandGroup>
+
+        {/* Add Global Variables group */}
+        <CommandGroup heading="Global Variables">
+          {Object.entries(globals).map(([name, value]) => (
+            <CommandItem
+              key={name}
+              onSelect={() => {
+                // Could add action here if needed
+                setOpen(false)
+              }}
+              className="flex justify-between items-center"
+            >
+              <div className="flex items-center">
+                <Variable className="w-4 h-4 mr-2 text-blue-500" />
+                <span className="font-mono">{name}</span>
+              </div>
+              <span
+                className={cn(
+                  "text-sm opacity-75",
+                  typeof value === "function"
+                    ? "text-purple-500"
+                    : "text-gray-500",
+                )}
+              >
+                {typeof value === "function"
+                  ? "function"
+                  : typeof value === "object"
+                    ? "object"
+                    : String(value).slice(0, 30)}
+              </span>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      </CommandList>
+    </CommandDialog>
+  )
+}
