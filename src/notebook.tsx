@@ -1,29 +1,13 @@
-import { Editor } from "@monaco-editor/react"
-import { memo, useEffect, useState } from "react"
+import { memo } from "react"
+import { Monaco } from "./monaco"
 import { evaluateCode } from "./quickjs"
 import { type Cell, useNotebookStore } from "./store"
+import { useDarkMode } from "./utils/useDarkMode"
 
 export function Notebook() {
-  const [theme, setTheme] = useState<"light" | "dark">(
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light",
-  )
+  const { theme, toggleTheme } = useDarkMode()
   const cells = useNotebookStore((state) => state.cells)
   const addCell = useNotebookStore((state) => state.addCell)
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
-    const handleChange = (e: MediaQueryListEvent) => {
-      setTheme(e.matches ? "dark" : "light")
-    }
-    mediaQuery.addEventListener("change", handleChange)
-    return () => mediaQuery.removeEventListener("change", handleChange)
-  }, [])
-
-  const toggleTheme = () => {
-    setTheme((current) => (current === "dark" ? "light" : "dark"))
-  }
 
   return (
     <div
@@ -48,7 +32,7 @@ export function Notebook() {
         </button>
       </div>
 
-      <div className={"flex flex-col w-full"}>
+      <div className="flex flex-col w-full">
         {cells.map((cell, index) => (
           <Cell key={cell.id} cell={cell} index={index + 1} theme={theme} />
         ))}
@@ -62,13 +46,6 @@ const Cell = memo(
     const updateCell = useNotebookStore((state) => state.updateCell)
     const updateGlobals = useNotebookStore((state) => state.updateGlobalObject)
     const globals = useNotebookStore((state) => state.globalObject)
-
-    const calculateEditorHeight = (content: string) => {
-      const lineCount = content.split("\n").length
-      const lineHeight = 20 // pixels per line
-      const padding = 15 // additional padding (top + bottom)
-      return Math.max(lineCount * lineHeight + padding, 50) // minimum height of 50px
-    }
 
     const runCode = async () => {
       try {
@@ -116,34 +93,9 @@ const Cell = memo(
           <div
             className={`flex-1 ${props.theme === "dark" ? "bg-[#1e1e1e]" : "bg-white"} pl-5`}
           >
-            <Editor
-              defaultValue={props.cell.content}
+            <Monaco
               language="typescript"
-              theme={props.theme === "dark" ? "vs-dark" : "vs-light"}
-              height={`${calculateEditorHeight(props.cell.content)}px`}
               value={props.cell.content}
-              options={{
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 14,
-                lineNumbers: "off",
-                glyphMargin: false,
-                folding: false,
-                padding: { top: 10, bottom: 5 },
-                lineDecorationsWidth: 0,
-                renderLineHighlight: "none",
-                overviewRulerBorder: false,
-                hideCursorInOverviewRuler: true,
-                overviewRulerLanes: 0,
-                scrollbar: {
-                  vertical: "hidden",
-                  horizontal: "hidden",
-                  alwaysConsumeMouseWheel: false,
-                  handleMouseWheel: false,
-                },
-                mouseWheelScrollSensitivity: 0,
-                fixedOverflowWidgets: true,
-              }}
               onChange={(value) => {
                 updateCell(props.cell.id, { content: value ?? "" })
               }}
