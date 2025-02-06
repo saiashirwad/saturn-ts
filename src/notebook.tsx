@@ -2,103 +2,78 @@ import { memo, useCallback } from "react"
 import { Monaco } from "./monaco/monaco-editor"
 import { evaluateCode } from "./quickjs"
 import { type Cell, useNotebookStore } from "./store"
-import { useDarkMode } from "./utils/useDarkMode"
 
 export function Notebook() {
-  const { theme, toggleTheme } = useDarkMode()
   const cells = useNotebookStore((state) => state.cells)
   const addCell = useNotebookStore((state) => state.addCell)
 
   return (
-    <div
-      className={`min-h-screen ${theme === "dark" ? "bg-[#1e1e1e] text-gray-300" : "bg-white text-gray-800"}`}
-    >
-      <div
-        className={`flex items-center justify-between px-2 py-1 border-b ${theme === "dark" ? "border-gray-700" : "border-gray-200"}`}
-      >
+    <div className="min-h-screen bg-white dark:bg-[#1e1e1e] text-gray-800 dark:text-gray-300">
+      <div className="flex items-center justify-between px-2 py-1 border-b border-gray-200 dark:border-gray-700">
         <button
-          className={`p-1 ${theme === "dark" ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-800"}`}
+          className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
           onClick={() => addCell("code")}
           title="Add cell"
         >
           +
         </button>
-        <button
-          className={`p-1 ${theme === "dark" ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-800"}`}
-          onClick={toggleTheme}
-          title="Toggle theme"
-        >
-          {theme === "dark" ? "☀️" : "🌙"}
-        </button>
       </div>
 
       <div className="flex flex-col w-full">
         {cells.map((cell, index) => (
-          <Cell key={cell.id} cell={cell} index={index + 1} theme={theme} />
+          <Cell key={cell.id} cell={cell} index={index + 1} />
         ))}
       </div>
     </div>
   )
 }
 
-const Cell = memo(
-  (props: { cell: Cell; index: number; theme: "light" | "dark" }) => {
-    const updateCell = useNotebookStore((state) => state.updateCell)
-    const globals = useNotebookStore((state) => state.globalObject)
+const Cell = memo((props: { cell: Cell; index: number }) => {
+  const updateCell = useNotebookStore((state) => state.updateCell)
+  const globals = useNotebookStore((state) => state.globalObject)
 
-    const run = useCallback(
-      (code: string) =>
-        runCode(code, globals, (result) => {
-          updateCell(props.cell.id, { output: result.output })
-        }),
-      [props.cell.id, updateCell, globals],
-    )
+  const run = useCallback(
+    (code: string) =>
+      runCode(code, globals, (result) => {
+        updateCell(props.cell.id, { output: result.output })
+      }),
+    [props.cell.id, updateCell, globals],
+  )
 
-    return (
-      <div
-        className={`flex flex-col border-b ${props.theme === "dark" ? "border-gray-700" : "border-gray-200"}`}
-      >
-        <div className="flex">
-          <div
-            className={`p-2 select-none flex flex-col items-end ${props.theme === "dark" ? "text-gray-500" : "text-gray-400"}`}
+  return (
+    <div className="flex flex-col border-b border-gray-200 dark:border-gray-700">
+      <div className="flex">
+        <div className="p-2 select-none flex flex-col items-end text-gray-400 dark:text-gray-500">
+          <button
+            className="text-green-700 dark:text-green-600 hover:text-gray-600"
+            onClick={() => run(props.cell.content)}
+            title="Run cell"
           >
-            <button
-              className={`${props.theme === "dark" ? "text-green-600" : "text-green-700"} hover:text-gray-600`}
-              onClick={() => run(props.cell.content)}
-              title="Run cell"
-            >
-              ▶
-            </button>
-          </div>
-
-          <div className={`flex-1 pl-5`}>
-            <Monaco
-              language="typescript"
-              value={props.cell.content}
-              onChange={(value) => {
-                updateCell(props.cell.id, { content: value ?? "" })
-              }}
-            />
-          </div>
+            ▶
+          </button>
         </div>
 
-        {props.cell.output && (
-          <div className="flex pl-10">
-            <div
-              className={`flex-1 p-2 font-mono text-sm ${
-                props.theme === "dark"
-                  ? "text-gray-300 bg-[#252526] border-gray-700"
-                  : "text-gray-800 bg-gray-50 border-gray-200"
-              } border-t`}
-            >
-              <pre>{JSON.stringify(props.cell.output, null, 2)}</pre>
-            </div>
-          </div>
-        )}
+        <div className="flex-1 pl-5">
+          <Monaco
+            language="typescript"
+            value={props.cell.content}
+            onChange={(value) => {
+              updateCell(props.cell.id, { content: value ?? "" })
+            }}
+          />
+        </div>
       </div>
-    )
-  },
-)
+
+      {props.cell.output && (
+        <div className="flex pl-10">
+          <div className="flex-1 p-2 font-mono text-sm text-gray-800 dark:text-gray-300 bg-gray-50 dark:bg-[#252526] border-t border-gray-200 dark:border-gray-700">
+            <pre>{JSON.stringify(props.cell.output, null, 2)}</pre>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+})
 
 async function runCode(
   code: string,
