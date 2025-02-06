@@ -1,8 +1,21 @@
 import { createId } from "@paralleldrive/cuid2"
+import { del, get, set } from "idb-keyval"
 import { temporal } from "zundo"
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
-// import { persist } from "zustand/middleware/persist"
+import { StateStorage, createJSONStorage, persist } from "zustand/middleware"
+
+const storage: StateStorage = {
+  getItem: async (name: string): Promise<string | null> => {
+    return (await get(name)) || null
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    await set(name, value)
+  },
+  removeItem: async (name: string): Promise<void> => {
+    await del(name)
+  },
+}
 
 export interface Cell {
   id: string
@@ -36,126 +49,123 @@ type NotebookStore = NotebookState & {
 }
 
 export const useNotebookStore = create<NotebookStore>()(
-  // persist(
-  immer(
-    temporal(
-      (set) => ({
-        cells: [],
-        selectedCellId: null,
-        globalObject: {},
-        focusedCellId: null,
-        setFocusedCell: (id) => set({ focusedCellId: id }),
-        addCell: (type, belowId) =>
-          set((state) => {
-            const newCell: Cell = {
-              id: createId(),
-              type,
-              content: "",
-              output: {},
-              executionCount: null,
-              error: null,
-            }
+  persist(
+    immer(
+      temporal(
+        (set) => ({
+          cells: [],
+          selectedCellId: null,
+          globalObject: {},
+          focusedCellId: null,
+          setFocusedCell: (id) => set({ focusedCellId: id }),
+          addCell: (type, belowId) =>
+            set((state) => {
+              const newCell: Cell = {
+                id: createId(),
+                type,
+                content: "",
+                output: {},
+                executionCount: null,
+                error: null,
+              }
 
-            const index = belowId
-              ? state.cells.findIndex((c) => c.id === belowId)
-              : -1
+              const index = belowId
+                ? state.cells.findIndex((c) => c.id === belowId)
+                : -1
 
-            if (index !== -1) {
-              state.cells.splice(index + 1, 0, newCell)
-            } else {
-              state.cells.push(newCell)
-            }
-            state.selectedCellId = newCell.id
-          }),
+              if (index !== -1) {
+                state.cells.splice(index + 1, 0, newCell)
+              } else {
+                state.cells.push(newCell)
+              }
+              state.selectedCellId = newCell.id
+            }),
 
-        deleteCell: (id) =>
-          set((state) => {
-            state.cells = state.cells.filter((cell) => cell.id !== id)
-            if (state.selectedCellId === id) {
-              state.selectedCellId = null
-            }
-          }),
+          deleteCell: (id) =>
+            set((state) => {
+              state.cells = state.cells.filter((cell) => cell.id !== id)
+              if (state.selectedCellId === id) {
+                state.selectedCellId = null
+              }
+            }),
 
-        updateCellContent: (id, content) =>
-          set((state) => {
-            const cell = state.cells.find((c) => c.id === id)
-            if (cell) {
-              cell.content = content
-              cell.error = null
-            }
-          }),
+          updateCellContent: (id, content) =>
+            set((state) => {
+              const cell = state.cells.find((c) => c.id === id)
+              if (cell) {
+                cell.content = content
+                cell.error = null
+              }
+            }),
 
-        updateCellOutput: (id, output, executionCount) =>
-          set((state) => {
-            const cell = state.cells.find((c) => c.id === id)
-            if (cell) {
-              cell.output = JSON.parse(output)
-              cell.executionCount = executionCount
-              cell.error = null
-            }
-          }),
+          updateCellOutput: (id, output, executionCount) =>
+            set((state) => {
+              const cell = state.cells.find((c) => c.id === id)
+              if (cell) {
+                cell.output = JSON.parse(output)
+                cell.executionCount = executionCount
+                cell.error = null
+              }
+            }),
 
-        setCellError: (id, error) =>
-          set((state) => {
-            const cell = state.cells.find((c) => c.id === id)
-            if (cell) {
-              cell.error = error
-            }
-          }),
+          setCellError: (id, error) =>
+            set((state) => {
+              const cell = state.cells.find((c) => c.id === id)
+              if (cell) {
+                cell.error = error
+              }
+            }),
 
-        selectCell: (id) =>
-          set((state) => {
-            state.selectedCellId = id
-          }),
+          selectCell: (id) =>
+            set((state) => {
+              state.selectedCellId = id
+            }),
 
-        moveCellUp: (id) =>
-          set((state) => {
-            const index = state.cells.findIndex((c) => c.id === id)
-            if (index > 0) {
-              const [moved] = state.cells.splice(index, 1)
-              state.cells.splice(index - 1, 0, moved)
-            }
-          }),
+          moveCellUp: (id) =>
+            set((state) => {
+              const index = state.cells.findIndex((c) => c.id === id)
+              if (index > 0) {
+                const [moved] = state.cells.splice(index, 1)
+                state.cells.splice(index - 1, 0, moved)
+              }
+            }),
 
-        moveCellDown: (id) =>
-          set((state) => {
-            const index = state.cells.findIndex((c) => c.id === id)
-            if (index < state.cells.length - 1) {
-              const [moved] = state.cells.splice(index, 1)
-              state.cells.splice(index + 1, 0, moved)
-            }
-          }),
+          moveCellDown: (id) =>
+            set((state) => {
+              const index = state.cells.findIndex((c) => c.id === id)
+              if (index < state.cells.length - 1) {
+                const [moved] = state.cells.splice(index, 1)
+                state.cells.splice(index + 1, 0, moved)
+              }
+            }),
 
-        updateCell: (id, cell) =>
-          set((state) => {
-            const index = state.cells.findIndex((c) => c.id === id)
-            if (index !== -1) {
-              state.cells[index] = { ...state.cells[index], ...cell }
-            }
-          }),
+          updateCell: (id, cell) =>
+            set((state) => {
+              const index = state.cells.findIndex((c) => c.id === id)
+              if (index !== -1) {
+                state.cells[index] = { ...state.cells[index], ...cell }
+              }
+            }),
 
-        updateGlobalObject: (globalObject) =>
-          set((state) => {
-            for (const [key, value] of Object.entries(globalObject)) {
-              state.globalObject[key] = value
-            }
-          }),
+          updateGlobalObject: (globalObject) =>
+            set((state) => {
+              for (const [key, value] of Object.entries(globalObject)) {
+                state.globalObject[key] = value
+              }
+            }),
 
-        setGlobalObject: (globalObject) =>
-          set((state) => {
-            state.globalObject = globalObject
-          }),
-      }),
-      {},
+          setGlobalObject: (globalObject) =>
+            set((state) => {
+              state.globalObject = globalObject
+            }),
+        }),
+        {},
+      ),
     ),
-    //   ),
-    //   {
-    //     name: "notebook-storage",
-    //     partialize: (state) => ({
-    //       ...state,
-    //       focusedCellId: null,
-    //     }),
-    //   },
-    // ),
+    {
+      name: "notebook-storage", // unique name
+      storage: createJSONStorage(() => storage),
+    },
   ),
 )
+// )

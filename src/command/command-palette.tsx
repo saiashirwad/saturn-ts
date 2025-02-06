@@ -14,11 +14,11 @@ import { useCommandPaletteStore, useCommandStore } from "./command-store"
 export function CommandPalette() {
   const isOpen = useCommandPaletteStore((state) => state.isOpen)
   const setIsOpen = useCommandPaletteStore((state) => state.setIsOpen)
-  const commands = useCommandStore((state) => state.getFilteredCommands())
   const addCell = useNotebookStore((state) => state.addCell)
   const cells = useNotebookStore((state) => state.cells)
   const setFocusedCell = useNotebookStore((state) => state.setFocusedCell)
   const globalVariables = useCommandStore((state) => state.commands)
+
   const globals = React.useMemo(() => {
     return Object.fromEntries(
       globalVariables
