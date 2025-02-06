@@ -18,7 +18,7 @@ export async function initQuickJS() {
 type EvaluationResult =
   | {
       type: "success"
-      output: string
+      output: Record<string, any>
     }
   | {
       type: "error"

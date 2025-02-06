@@ -7,7 +7,7 @@ export interface Cell {
   id: string
   type: "code" | "markdown"
   content: string
-  output: string
+  output: Record<string, any>
   executionCount: number | null
   error: string | null
 }
@@ -45,7 +45,7 @@ export const useNotebookStore = create<NotebookStore>()(
               id: createId(),
               type,
               content: "",
-              output: "",
+              output: {},
               executionCount: null,
               error: null,
             }
@@ -83,7 +83,7 @@ export const useNotebookStore = create<NotebookStore>()(
           set((state) => {
             const cell = state.cells.find((c) => c.id === id)
             if (cell) {
-              cell.output = output
+              cell.output = JSON.parse(output)
               cell.executionCount = executionCount
               cell.error = null
             }

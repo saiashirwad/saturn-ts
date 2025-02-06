@@ -39,14 +39,19 @@ const Cell = memo((props: { cell: Cell; index: number }) => {
       const result = await evaluateCode(props.cell.content, globals)
       if (result.type === "success") {
         updateCell(props.cell.id, { output: result.output })
+        console.log(result.output)
       } else {
         updateCell(props.cell.id, {
-          output: result.error,
+          output: {
+            error: result.error,
+          },
         })
       }
     } catch (error) {
       updateCell(props.cell.id, {
-        output: JSON.stringify(error, null, 2),
+        output: {
+          error: error,
+        },
       })
     }
   }
@@ -73,6 +78,7 @@ const Cell = memo((props: { cell: Cell; index: number }) => {
             language="typescript"
             theme="vs-dark"
             height="200px"
+            value={props.cell.content}
             options={{
               minimap: { enabled: false },
               scrollBeyondLastLine: false,
@@ -98,11 +104,9 @@ const Cell = memo((props: { cell: Cell; index: number }) => {
 
       {props.cell.output && (
         <div className="flex">
-          <div className="w-16 p-2 text-gray-500 select-none flex flex-col items-end">
-            <div className="flex items-center gap-1">
-              <span className="text-green-500">✓</span>
-              <span className="text-xs text-gray-500">0.0s</span>
-            </div>
+          <div className="w-16 p-2 flex items-center justify-end gap-1">
+            <span className="text-green-500">✓</span>
+            <span className="text-xs text-gray-500">0.0s</span>
           </div>
           <div className="flex-1 p-2 font-mono text-sm text-gray-300 bg-[#252526] border-t border-gray-700">
             <pre>{JSON.stringify(props.cell.output, null, 2)}</pre>
