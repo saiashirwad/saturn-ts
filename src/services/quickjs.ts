@@ -29,12 +29,11 @@ export class QuickJS extends Effect.Service<QuickJS>()("app/QuickJS", {
       Effect.sync(() => vm.evalCode(code)).pipe(
         Effect.flatMap((result) =>
           Effect.gen(function* () {
-            console.log("hi")
             if (result.error) {
               return yield* Effect.fail(new ExecError({ error: result.error }))
             }
-            console.log(vm.getString(result.value))
-            return yield* Effect.succeed(vm.dump(result.value))
+
+            return vm.dump(result.value)
           }),
         ),
       )

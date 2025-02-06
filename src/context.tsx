@@ -24,9 +24,9 @@ export const useSaturn = () => {
   return value
 }
 
-export const useOutput = () => {
-  const saturn = useSaturn()
-  const output = useRxValue(saturn.output)
-  console.log("Current output value:", output) // Debug log
-  return output
-}
+//export const useOutput = () => {
+//  const saturn = useSaturn()
+//  return useRxValue(saturn.output)
+//}
+
+export const useOutput = () => useRxValue(useSaturn().output)

@@ -7,7 +7,10 @@ function Editor() {
   const output = useOutput()
   const evalCode = useRxSet(saturn.evalCode)
 
-  const [code, setCode] = useState('"hi"')
+  const [code, setCode] = useState(`
+    const a = { a: 10, b: 20};
+    a
+`)
 
   return (
     <div className="p-5">
@@ -35,7 +38,7 @@ function Editor() {
 function App() {
   return (
     <Suspense>
-      <SaturnProvider initialCode={5}>
+      <SaturnProvider initialCode={"5"}>
         <Editor />
       </SaturnProvider>
     </Suspense>

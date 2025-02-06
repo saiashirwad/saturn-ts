@@ -24,6 +24,7 @@ export const saturnHandleRx = Rx.family(
         const evalCode = Rx.fn((code: string) =>
           Effect.gen(function* () {
             const result = yield* quickjs.evalCode(code)
+            console.log(result)
             yield* ctx.set(output, result)
             return result
           }),
