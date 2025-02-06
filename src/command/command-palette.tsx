@@ -9,7 +9,6 @@ import {
   CommandList,
 } from "../components/ui/command"
 import { useNotebookStore } from "../notebook/notebook-store"
-import { cn } from "../utils/cn"
 import { useCommandStore } from "./command-store"
 
 export function CommandPalette() {
@@ -53,37 +52,28 @@ export function CommandPalette() {
           </CommandItem>
         </CommandGroup>
 
-        {/* Add Global Variables group */}
         <CommandGroup heading="Global Variables">
-          {Object.entries(globals).map(([name, value]) => (
-            <CommandItem
-              key={name}
-              onSelect={() => {
-                // Could add action here if needed
-                setOpen(false)
-              }}
-              className="flex justify-between items-center"
-            >
-              <div className="flex items-center">
-                <Variable className="w-4 h-4 mr-2 text-blue-500" />
-                <span className="font-mono">{name}</span>
-              </div>
-              <span
-                className={cn(
-                  "text-sm opacity-75",
-                  typeof value === "function"
-                    ? "text-purple-500"
-                    : "text-gray-500",
-                )}
+          {Object.entries(globals).map(([name, value]) => {
+            console.log(value)
+            return (
+              <CommandItem
+                key={name}
+                onSelect={() => {
+                  // Could add action here if needed
+                  setOpen(false)
+                }}
+                className="flex justify-between items-center"
               >
-                {typeof value === "function"
-                  ? "function"
-                  : typeof value === "object"
-                    ? "object"
-                    : String(value).slice(0, 30)}
-              </span>
-            </CommandItem>
-          ))}
+                <div className="flex items-center">
+                  <Variable className="w-4 h-4 mr-2 text-blue-500" />
+                  <span className="font-mono">{name}</span>
+                </div>
+                <span className="text-xs opacity-75 text-blue-500 font-mono">
+                  global
+                </span>
+              </CommandItem>
+            )
+          })}
         </CommandGroup>
       </CommandList>
     </CommandDialog>
