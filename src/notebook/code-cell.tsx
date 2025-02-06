@@ -1,58 +1,91 @@
-import { memo, useCallback } from "react"
+import type { editor } from "monaco-editor"
+import * as React from "react"
+import { memo, useCallback, useRef } from "react"
+import { registerGlobalVariable } from "../command/command-store"
 import { Monaco } from "../monaco/monaco-editor"
 import { evaluateCode } from "../quickjs"
 import { type Cell as CellType, useNotebookStore } from "./notebook-store"
-import { registerGlobalVariable } from "../command/command-store"
 
-export const CodeCell = memo((props: { cell: CellType; index: number }) => {
-  const updateCell = useNotebookStore((state) => state.updateCell)
-  const globals = useNotebookStore((state) => state.globalObject)
+interface CodeCellProps {
+  cell: CellType
+  index: number
+  isFocused: boolean
+}
 
-  const run = useCallback(
-    (code: string) =>
-      runCode(code, globals, (result) => {
-        updateCell(props.cell.id, { output: result.output })
-        for (const [key, value] of Object.entries(result.output)) {
-          registerGlobalVariable(key, value)
-        }
-      }),
-    [props.cell.id, updateCell, globals],
-  )
+const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
+  ({ cell, isFocused }, ref) => {
+    const updateCell = useNotebookStore((state) => state.updateCell)
+    const globals = useNotebookStore((state) => state.globalObject)
+    const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
 
-  return (
-    <div className="flex flex-col border-b border-gray-200 dark:border-gray-700">
-      <div className="flex">
-        <div className="p-2 select-none flex flex-col items-end text-gray-400 dark:text-gray-500">
-          <button
-            className="text-green-700 dark:text-green-600 hover:text-gray-600"
-            onClick={() => run(props.cell.content)}
-            title="Run cell"
-          >
-            ▶
-          </button>
-        </div>
+    const handleEditorDidMount = useCallback(
+      (editor: editor.IStandaloneCodeEditor) => {
+        editorRef.current = editor
+      },
+      [],
+    )
 
-        <div className="flex-1 pl-5">
-          <Monaco
-            language="typescript"
-            value={props.cell.content}
-            onChange={(value) => {
-              updateCell(props.cell.id, { content: value ?? "" })
-            }}
-          />
-        </div>
-      </div>
+    React.useEffect(() => {
+      if (isFocused) {
+        editorRef.current?.focus()
+      }
+    }, [isFocused])
 
-      {props.cell.output && (
-        <div className="flex pl-10">
-          <div className="flex-1 p-2 font-mono text-sm text-gray-800 dark:text-gray-300 bg-gray-50 dark:bg-[#252526] border-t border-gray-200 dark:border-gray-700">
-            <pre>{JSON.stringify(props.cell.output, null, 2)}</pre>
+    const run = useCallback(
+      (code: string) =>
+        runCode(code, globals, (result) => {
+          updateCell(cell.id, { output: result.output })
+          for (const [key, value] of Object.entries(result.output)) {
+            registerGlobalVariable(key, value)
+          }
+        }),
+      [cell.id, updateCell, globals],
+    )
+
+    return (
+      <div
+        ref={ref}
+        className="flex flex-col border-b border-gray-200 dark:border-gray-700"
+      >
+        <div className="flex">
+          <div className="p-2 select-none flex flex-col items-end text-gray-400 dark:text-gray-500">
+            <button
+              className="text-green-700 dark:text-green-600 hover:text-gray-600"
+              onClick={() => run(cell.content)}
+              title="Run cell"
+            >
+              ▶
+            </button>
+          </div>
+
+          <div className="flex-1 pl-5">
+            <Monaco
+              language="typescript"
+              value={cell.content}
+              onChange={(value) => {
+                updateCell(cell.id, { content: value ?? "" })
+              }}
+              onMount={handleEditorDidMount}
+            />
           </div>
         </div>
-      )}
-    </div>
-  )
-})
+
+        {cell.output && (
+          <div className="flex pl-10">
+            <div className="flex-1 p-2 font-mono text-sm text-gray-800 dark:text-gray-300 bg-gray-50 dark:bg-[#252526] border-t border-gray-200 dark:border-gray-700">
+              <pre>{JSON.stringify(cell.output, null, 2)}</pre>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  },
+)
+
+ForwardedCodeCell.displayName = "CodeCell"
+
+// Then wrap it with memo
+export const CodeCell = memo(ForwardedCodeCell)
 
 export async function runCode(
   code: string,

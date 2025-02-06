@@ -2,6 +2,7 @@ import { createId } from "@paralleldrive/cuid2"
 import { temporal } from "zundo"
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
+// import { persist } from "zustand/middleware/persist"
 
 export interface Cell {
   id: string
@@ -16,6 +17,8 @@ interface NotebookState {
   cells: Cell[]
   selectedCellId: string | null
   globalObject: Record<string, any>
+  focusedCellId: string | null
+  setFocusedCell: (id: string | null) => void
 }
 
 type NotebookStore = NotebookState & {
@@ -33,12 +36,15 @@ type NotebookStore = NotebookState & {
 }
 
 export const useNotebookStore = create<NotebookStore>()(
+  // persist(
   immer(
     temporal(
       (set) => ({
         cells: [],
         selectedCellId: null,
         globalObject: {},
+        focusedCellId: null,
+        setFocusedCell: (id) => set({ focusedCellId: id }),
         addCell: (type, belowId) =>
           set((state) => {
             const newCell: Cell = {
@@ -142,5 +148,14 @@ export const useNotebookStore = create<NotebookStore>()(
       }),
       {},
     ),
+    //   ),
+    //   {
+    //     name: "notebook-storage",
+    //     partialize: (state) => ({
+    //       ...state,
+    //       focusedCellId: null,
+    //     }),
+    //   },
+    // ),
   ),
 )

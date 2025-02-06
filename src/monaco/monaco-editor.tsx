@@ -1,6 +1,7 @@
 import { Editor } from "@monaco-editor/react"
 import { useMemo } from "react"
 import { useDarkMode } from "../utils/useDarkMode"
+import { editor } from "monaco-editor"
 
 const calculateEditorHeight = (content: string) => {
   const lineCount = content.split("\n").length
@@ -13,6 +14,7 @@ export function Monaco(props: {
   language: string
   value: string
   onChange: (value: string | undefined) => void
+  onMount: (editor: editor.IStandaloneCodeEditor) => void
 }) {
   const { theme } = useDarkMode()
 
@@ -28,6 +30,7 @@ export function Monaco(props: {
       theme={theme === "dark" ? "vs-dark" : "vs-light"}
       height={editorHeight}
       value={props.value}
+      onMount={props.onMount}
       options={{
         minimap: { enabled: false },
         scrollBeyondLastLine: false,

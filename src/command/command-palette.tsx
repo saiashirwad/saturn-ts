@@ -14,6 +14,8 @@ import { useCommandStore } from "./command-store"
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false)
   const addCell = useNotebookStore((state) => state.addCell)
+  const cells = useNotebookStore((state) => state.cells)
+  const setFocusedCell = useNotebookStore((state) => state.setFocusedCell)
   const globalVariables = useCommandStore((state) => state.commands)
   const globals = React.useMemo(() => {
     return Object.fromEntries(
@@ -50,6 +52,25 @@ export function CommandPalette() {
             <Search className="w-4 h-4 mr-2" />
             Add Code Cell
           </CommandItem>
+        </CommandGroup>
+
+        <CommandGroup heading="Cells">
+          {cells.map((cell, index) => (
+            <CommandItem
+              key={cell.id}
+              onSelect={() => {
+                setFocusedCell(cell.id)
+                setOpen(false)
+              }}
+              className="flex justify-between items-center"
+            >
+              <div className="flex items-center">
+                <Search className="w-4 h-4 mr-2" />
+                <span>Focus Cell {index + 1}</span>
+              </div>
+              <span className="text-xs opacity-75 font-mono">{cell.type}</span>
+            </CommandItem>
+          ))}
         </CommandGroup>
 
         <CommandGroup heading="Global Variables">
