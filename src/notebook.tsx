@@ -34,6 +34,13 @@ const Cell = memo((props: { cell: Cell; index: number }) => {
   )
   const globals = useNotebookStore((state) => state.globalObject)
 
+  const calculateEditorHeight = (content: string) => {
+    const lineCount = content.split("\n").length
+    const lineHeight = 20 // pixels per line
+    const padding = 15 // additional padding (top + bottom)
+    return Math.max(lineCount * lineHeight + padding, 50) // minimum height of 50px
+  }
+
   const runCode = async () => {
     try {
       const result = await evaluateCode(props.cell.content, globals)
@@ -77,7 +84,7 @@ const Cell = memo((props: { cell: Cell; index: number }) => {
             defaultValue={props.cell.content}
             language="typescript"
             theme="vs-dark"
-            height="200px"
+            height={`${calculateEditorHeight(props.cell.content)}px`}
             value={props.cell.content}
             options={{
               minimap: { enabled: false },
@@ -95,9 +102,15 @@ const Cell = memo((props: { cell: Cell; index: number }) => {
               scrollbar: {
                 vertical: "hidden",
                 horizontal: "hidden",
+                alwaysConsumeMouseWheel: false,
+                handleMouseWheel: false,
               },
+              mouseWheelScrollSensitivity: 0,
+              fixedOverflowWidgets: true,
             }}
-            onChange={(value) => updateCell(props.cell.id, { content: value })}
+            onChange={(value) => {
+              updateCell(props.cell.id, { content: value ?? "" })
+            }}
           />
         </div>
       </div>
