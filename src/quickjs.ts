@@ -1,29 +1,76 @@
-import { getQuickJS, QuickJSContext } from "quickjs-emscripten"
+import {
+  QuickJSContext,
+  QuickJSWASMModule,
+  getQuickJS,
+} from "quickjs-emscripten"
 
-let quickJSInstance: Awaited<ReturnType<typeof getQuickJS>> | null = null
-let vmInstance: QuickJSContext | null = null
+let quickjsInstance: QuickJSWASMModule | null = null
+let vm: QuickJSContext | null = null
 
-export async function getQuickJSInstance() {
-  if (!quickJSInstance) {
-    console.log("create quickjs instance")
-    quickJSInstance = await getQuickJS()
-  }
-  return quickJSInstance
+export async function initQuickJS() {
+  if (quickjsInstance && vm) return { quickjsInstance, vm }
+  quickjsInstance = await getQuickJS()
+  vm = quickjsInstance.newContext()
+
+  return { quickjsInstance, vm }
 }
 
-export function getVM(): QuickJSContext {
-  if (!vmInstance && quickJSInstance) {
-    vmInstance = quickJSInstance.newContext()
+type EvaluationResult =
+  | {
+      type: "success"
+      output: string
+    }
+  | {
+      type: "error"
+      error: string
+    }
+
+export async function evaluateCode(
+  code: string,
+  globalObject?: Record<string, any>,
+): Promise<EvaluationResult> {
+  const { vm } = await initQuickJS()
+
+  if (globalObject) {
+    const handles = new Set()
+    Object.entries(globalObject).forEach(([key, value]) => {
+      const handle = vm.newString(value)
+      handles.add(handle)
+      vm.setProp(vm.global, key, handle)
+    })
   }
-  if (!vmInstance) {
-    throw new Error("VM not initialized")
+
+  try {
+    const result = vm.evalCode(code)
+
+    if (result.error) {
+      const errorMessage = vm.dump(result.error)
+      result.error.dispose()
+      throw new Error(errorMessage)
+    }
+
+    const output = vm.dump(result.value)
+    result.value.dispose()
+
+    return {
+      type: "success",
+      output,
+    }
+  } catch (error) {
+    return {
+      type: "error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    }
   }
-  return vmInstance
 }
 
-export function disposeVM() {
-  if (vmInstance) {
-    vmInstance.dispose()
-    vmInstance = null
-  }
+// Handle HMR
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    if (vm) {
+      vm.dispose()
+    }
+    vm = null
+    quickjsInstance = null
+  })
 }

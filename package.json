@@ -10,14 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@effect-rx/rx-react": "^0.31.8",
-    "@effect/monaco-editor": "^0.0.2",
-    "@effect/platform": "^0.75.3",
-    "@effect/platform-browser": "^0.54.3",
-    "effect": "^3.12.9",
+    "@monaco-editor/react": "^4.6.0",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "immer": "^10.1.1",
     "quickjs-emscripten": "^0.31.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "zundo": "^2.3.0",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.3",
