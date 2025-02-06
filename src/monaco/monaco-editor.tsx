@@ -1,6 +1,7 @@
 import { Editor } from "@monaco-editor/react"
 import { useMemo } from "react"
 import { useDarkMode } from "../utils/useDarkMode"
+
 const calculateEditorHeight = (content: string) => {
   const lineCount = content.split("\n").length
   const lineHeight = 20 // pixels per line
