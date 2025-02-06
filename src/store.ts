@@ -28,7 +28,7 @@ type NotebookStore = NotebookState & {
   moveCellUp: (id: string) => void
   moveCellDown: (id: string) => void
   updateCell: (id: string, cell: Partial<Cell>) => void
-  updateGlobalObject: (key: string, value: any) => void
+  updateGlobalObject: (globalObject: Record<string, any>) => void
   setGlobalObject: (globalObject: Record<string, any>) => void
 }
 
@@ -128,9 +128,11 @@ export const useNotebookStore = create<NotebookStore>()(
             }
           }),
 
-        updateGlobalObject: (key, value) =>
+        updateGlobalObject: (globalObject) =>
           set((state) => {
-            state.globalObject[key] = value
+            for (const [key, value] of Object.entries(globalObject)) {
+              state.globalObject[key] = value
+            }
           }),
 
         setGlobalObject: (globalObject) =>

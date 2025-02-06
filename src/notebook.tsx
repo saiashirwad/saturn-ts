@@ -29,9 +29,7 @@ export function Notebook() {
 
 const Cell = memo((props: { cell: Cell; index: number }) => {
   const updateCell = useNotebookStore((state) => state.updateCell)
-  const updateGlobalObject = useNotebookStore(
-    (state) => state.updateGlobalObject,
-  )
+  const updateGlobals = useNotebookStore((state) => state.updateGlobalObject)
   const globals = useNotebookStore((state) => state.globalObject)
 
   const calculateEditorHeight = (content: string) => {
@@ -46,7 +44,11 @@ const Cell = memo((props: { cell: Cell; index: number }) => {
       const result = await evaluateCode(props.cell.content, globals)
       if (result.type === "success") {
         updateCell(props.cell.id, { output: result.output })
-        console.log(result.output)
+        let newGlobals: Record<string, any> = {}
+        for (const [key, value] of Object.entries(result.output)) {
+          newGlobals[key] = value
+        }
+        updateGlobals(newGlobals)
       } else {
         updateCell(props.cell.id, {
           output: {
@@ -66,20 +68,17 @@ const Cell = memo((props: { cell: Cell; index: number }) => {
   return (
     <div className="flex flex-col border-b border-gray-700">
       <div className="flex">
-        <div className="w-16 p-2 text-gray-500 select-none flex flex-col items-end">
-          <div className="flex items-center gap-1">
-            <button
-              className="text-gray-400 hover:text-gray-200"
-              onClick={runCode}
-              title="Run cell"
-            >
-              ▶
-            </button>
-            [{props.index}]
-          </div>
+        <div className="p-2 text-gray-500 select-none flex flex-col items-end">
+          <button
+            className="text-green-600 hover:text-gray-200"
+            onClick={runCode}
+            title="Run cell"
+          >
+            ▶
+          </button>
         </div>
 
-        <div className="flex-1 bg-[#1e1e1e]">
+        <div className="flex-1 bg-[#1e1e1e] pl-5">
           <Editor
             defaultValue={props.cell.content}
             language="typescript"
@@ -116,11 +115,7 @@ const Cell = memo((props: { cell: Cell; index: number }) => {
       </div>
 
       {props.cell.output && (
-        <div className="flex">
-          <div className="w-16 p-2 flex items-center justify-end gap-1">
-            <span className="text-green-500">✓</span>
-            <span className="text-xs text-gray-500">0.0s</span>
-          </div>
+        <div className="flex pl-10">
           <div className="flex-1 p-2 font-mono text-sm text-gray-300 bg-[#252526] border-t border-gray-700">
             <pre>{JSON.stringify(props.cell.output, null, 2)}</pre>
           </div>
