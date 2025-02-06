@@ -96,7 +96,6 @@ export function CommandPalette() {
           ))}
         </CommandGroup>
       </CommandList>
-      <button onClick={() => setIsOpen(false)}>Close</button>
     </CommandDialog>
   ) : null
 }
