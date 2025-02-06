@@ -2,7 +2,7 @@ import { Notebook } from "./notebook"
 
 function App() {
   return (
-    <div className="p-8">
+    <div>
       <Notebook />
     </div>
   )
