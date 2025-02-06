@@ -13,6 +13,7 @@
     "@monaco-editor/react": "^4.6.0",
     "@paralleldrive/cuid2": "^2.2.2",
     "immer": "^10.1.1",
+    "monaco-editor": "^0.52.2",
     "quickjs-emscripten": "^0.31.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -1,5 +1,5 @@
 import { memo } from "react"
-import { Monaco } from "./monaco"
+import { Monaco } from "./monaco/monaco"
 import { evaluateCode } from "./quickjs"
 import { type Cell, useNotebookStore } from "./store"
 import { useDarkMode } from "./utils/useDarkMode"
