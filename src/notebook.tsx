@@ -1,4 +1,4 @@
-import { memo } from "react"
+import { memo, useCallback } from "react"
 import { Monaco } from "./monaco/monaco-editor"
 import { evaluateCode } from "./quickjs"
 import { type Cell, useNotebookStore } from "./store"
@@ -44,34 +44,15 @@ export function Notebook() {
 const Cell = memo(
   (props: { cell: Cell; index: number; theme: "light" | "dark" }) => {
     const updateCell = useNotebookStore((state) => state.updateCell)
-    const updateGlobals = useNotebookStore((state) => state.updateGlobalObject)
     const globals = useNotebookStore((state) => state.globalObject)
 
-    const runCode = async () => {
-      try {
-        const result = await evaluateCode(props.cell.content, globals)
-        if (result.type === "success") {
+    const run = useCallback(
+      (code: string) =>
+        runCode(code, globals, (result) => {
           updateCell(props.cell.id, { output: result.output })
-          let newGlobals: Record<string, any> = {}
-          for (const [key, value] of Object.entries(result.output)) {
-            newGlobals[key] = value
-          }
-          updateGlobals(newGlobals)
-        } else {
-          updateCell(props.cell.id, {
-            output: {
-              error: result.error,
-            },
-          })
-        }
-      } catch (error) {
-        updateCell(props.cell.id, {
-          output: {
-            error: error,
-          },
-        })
-      }
-    }
+        }),
+      [props.cell.id, updateCell, globals],
+    )
 
     return (
       <div
@@ -83,16 +64,14 @@ const Cell = memo(
           >
             <button
               className={`${props.theme === "dark" ? "text-green-600" : "text-green-700"} hover:text-gray-600`}
-              onClick={runCode}
+              onClick={() => run(props.cell.content)}
               title="Run cell"
             >
               ▶
             </button>
           </div>
 
-          <div
-            className={`flex-1 ${props.theme === "dark" ? "bg-[#1e1e1e]" : "bg-white"} pl-5`}
-          >
+          <div className={`flex-1 pl-5`}>
             <Monaco
               language="typescript"
               value={props.cell.content}
@@ -120,3 +99,49 @@ const Cell = memo(
     )
   },
 )
+
+async function runCode(
+  code: string,
+  globals: Record<string, any>,
+  onResult: (result: {
+    type: "success" | "error"
+    output: any
+    error: any
+  }) => void,
+) {
+  try {
+    const result = await evaluateCode(code, globals)
+    if (result.type === "success") {
+      onResult({
+        type: "success",
+        output: result.output,
+        error: null,
+      })
+      let newGlobals: Record<string, any> = {}
+      for (const [key, value] of Object.entries(result.output)) {
+        newGlobals[key] = value
+      }
+      onResult({
+        type: "success",
+        output: newGlobals,
+        error: null,
+      })
+    } else {
+      onResult({
+        type: "error",
+        output: {
+          error: result.error,
+        },
+        error: result.error,
+      })
+    }
+  } catch (error) {
+    onResult({
+      type: "error",
+      output: {
+        error: error,
+      },
+      error: error,
+    })
+  }
+}
