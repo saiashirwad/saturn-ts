@@ -1,5 +1,4 @@
-import { create } from "zustand"
-import { immer } from "zustand/middleware/immer"
+import { observable } from "@legendapp/state"
 
 export interface Command {
   id: string
@@ -19,21 +18,19 @@ interface CommandPaletteState {
 }
 
 type CommandStore = CommandState & {
-  registerCommand: (command: Command) => void
   unregisterCommand: (id: string) => void
   setSearchQuery: (query: string) => void
-  getFilteredCommands: () => Command[]
+  filteredCommands: Command[]
 }
 
 type CommandPaletteStore = CommandPaletteState & {
-  setIsOpen: (isOpen: boolean) => void
   toggle: () => void
 }
 
 export function registerGlobalVariable(name: string, value: any) {
-  useCommandStore.getState().registerCommand({
+  command$.commands.push({
     id: `global-${name}`,
-    name: name,
+    name,
     category: "global",
     handler: () => {
       console.log("global variable", name, value)
@@ -41,51 +38,37 @@ export function registerGlobalVariable(name: string, value: any) {
   })
 }
 
-export const useCommandStore = create<CommandStore>()(
-  immer((set, get) => ({
-    commands: [],
-    searchQuery: "",
+export const command$ = observable<CommandStore>({
+  commands: [],
+  searchQuery: "",
 
-    registerCommand: (command) =>
-      set((state) => {
-        state.commands.push(command)
-      }),
+  unregisterCommand: (id) => {
+    const index = command$.commands.findIndex((cmd) => cmd.id.peek() === id)
+    if (index !== -1) {
+      command$.commands.splice(index, 1)
+    }
+  },
 
-    unregisterCommand: (id) =>
-      set((state) => {
-        state.commands = state.commands.filter((cmd) => cmd.id !== id)
-      }),
+  setSearchQuery: (query) => {
+    command$.searchQuery.set(query)
+  },
 
-    setSearchQuery: (query) =>
-      set((state) => {
-        state.searchQuery = query
-      }),
+  filteredCommands: () => {
+    const query = command$.searchQuery.get().toLowerCase()
+    if (!query) return command$.commands
+    const comamnds = command$.commands.get()
+    return comamnds.filter(
+      (cmd) =>
+        cmd.name.toLowerCase().includes(query) ||
+        cmd.description?.toLowerCase().includes(query),
+    )
+  },
+})
 
-    getFilteredCommands: () => {
-      const state = get()
-      const query = state.searchQuery.toLowerCase()
+export const commandPalette$ = observable<CommandPaletteStore>({
+  isOpen: false,
 
-      if (!query) return state.commands
-
-      return state.commands.filter(
-        (cmd) =>
-          cmd.name.toLowerCase().includes(query) ||
-          cmd.description?.toLowerCase().includes(query),
-      )
-    },
-  })),
-)
-
-export const useCommandPaletteStore = create<CommandPaletteStore>()(
-  immer((set) => ({
-    isOpen: false,
-    setIsOpen: (isOpen) =>
-      set((state) => {
-        state.isOpen = isOpen
-      }),
-    toggle: () =>
-      set((state) => {
-        state.isOpen = !state.isOpen
-      }),
-  })),
-)
+  toggle: () => {
+    commandPalette$.isOpen.set(!commandPalette$.isOpen)
+  },
+})

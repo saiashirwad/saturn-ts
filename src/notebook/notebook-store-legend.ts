@@ -32,12 +32,12 @@ type NotebookStore = NotebookState & {
   setGlobalObject: (globalObject: Record<string, any>) => void
 }
 
-const store$ = observable<NotebookStore>({
+export const notebook$ = observable<NotebookStore>({
   cells: [],
   selectedCellId: null,
   globalObject: {},
   focusedCellId: null,
-  setFocusedCell: (id) => store$.focusedCellId.set(id),
+  setFocusedCell: (id) => notebook$.focusedCellId.set(id),
   addCell: (type, belowId) => {
     const newCell: Cell = {
       id: createId(),
@@ -48,92 +48,92 @@ const store$ = observable<NotebookStore>({
       error: null,
     }
 
-    const cells = store$.cells.peek()
+    const cells = notebook$.cells.peek()
     const index = belowId ? cells.findIndex((c) => c.id === belowId) : -1
 
     if (index !== -1) {
-      store$.cells.splice(index + 1, 0, newCell)
+      notebook$.cells.splice(index + 1, 0, newCell)
     } else {
-      store$.cells.push(newCell)
+      notebook$.cells.push(newCell)
     }
-    store$.selectedCellId.set(newCell.id)
+    notebook$.selectedCellId.set(newCell.id)
   },
 
   deleteCell: (id) => {
-    const cells = store$.cells.peek()
+    const cells = notebook$.cells.peek()
     const index = cells.findIndex((c) => c.id === id)
     if (index !== -1) {
-      store$.cells.splice(index, 1)
+      notebook$.cells.splice(index, 1)
     }
-    if (store$.selectedCellId.peek() === id) {
-      store$.selectedCellId.set(null)
+    if (notebook$.selectedCellId.peek() === id) {
+      notebook$.selectedCellId.set(null)
     }
   },
 
   updateCellContent: (id, content) => {
-    const cells = store$.cells.peek()
+    const cells = notebook$.cells.peek()
     const cell = cells.findIndex((c) => c.id === id)
     if (cell !== -1) {
-      store$.cells[cell].content.set(content)
-      store$.cells[cell].error.set(null)
+      notebook$.cells[cell].content.set(content)
+      notebook$.cells[cell].error.set(null)
     }
   },
 
   updateCellOutput: (id, output, executionCount) => {
-    const cells = store$.cells.peek()
+    const cells = notebook$.cells.peek()
     const cell = cells.findIndex((c) => c.id === id)
     if (cell !== -1) {
-      store$.cells[cell].output.set(JSON.parse(output))
-      store$.cells[cell].executionCount.set(executionCount)
-      store$.cells[cell].error.set(null)
+      notebook$.cells[cell].output.set(JSON.parse(output))
+      notebook$.cells[cell].executionCount.set(executionCount)
+      notebook$.cells[cell].error.set(null)
     }
   },
 
   setCellError: (id, error) => {
-    const cells = store$.cells.peek()
+    const cells = notebook$.cells.peek()
     const cell = cells.findIndex((c) => c.id === id)
     if (cell !== -1) {
-      store$.cells[cell].error.set(error)
+      notebook$.cells[cell].error.set(error)
     }
   },
 
   selectCell: (id) => {
-    store$.selectedCellId.set(id)
+    notebook$.selectedCellId.set(id)
   },
 
   moveCellUp: (id) => {
-    const cells = store$.cells.peek()
+    const cells = notebook$.cells.peek()
     const index = cells.findIndex((c) => c.id === id)
     if (index > 0) {
-      const [moved] = store$.cells.splice(index, 1)
-      store$.cells.splice(index - 1, 0, moved)
+      const [moved] = notebook$.cells.splice(index, 1)
+      notebook$.cells.splice(index - 1, 0, moved)
     }
   },
 
   moveCellDown: (id) => {
-    const cells = store$.cells.peek()
+    const cells = notebook$.cells.peek()
     const index = cells.findIndex((c) => c.id === id)
     if (index < cells.length - 1) {
-      const [moved] = store$.cells.splice(index, 1)
-      store$.cells.splice(index + 1, 0, moved)
+      const [moved] = notebook$.cells.splice(index, 1)
+      notebook$.cells.splice(index + 1, 0, moved)
     }
   },
 
   updateCell: (id, cell) => {
-    const index = store$.cells.peek().findIndex((c) => c.id === id)
+    const index = notebook$.cells.peek().findIndex((c) => c.id === id)
     if (index !== -1) {
-      store$.cells[index].set({ ...store$.cells[index].peek(), ...cell })
+      notebook$.cells[index].set({ ...notebook$.cells[index].peek(), ...cell })
     }
   },
 
   updateGlobalObject: (globalObject: Record<string, any>) => {
     for (const [key, value] of Object.entries(globalObject)) {
-      store$.globalObject[key].set(value)
+      notebook$.globalObject[key].set(value)
     }
   },
 
   setGlobalObject: (globalObject: Record<string, any>) => {
-    store$.globalObject.set(globalObject)
+    notebook$.globalObject.set(globalObject)
   },
 })
 // )

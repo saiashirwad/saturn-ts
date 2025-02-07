@@ -1,14 +1,15 @@
+import { use$ } from "@legendapp/state/react"
 import type { editor } from "monaco-editor"
 import * as monaco from "monaco-editor"
 import * as React from "react"
 import { memo, useCallback, useRef } from "react"
 import {
+  commandPalette$,
   registerGlobalVariable,
-  useCommandPaletteStore,
 } from "../command/command-store"
 import { Monaco } from "../monaco/monaco-editor"
 import { evaluateCode } from "../quickjs"
-import { type Cell as CellType, useNotebookStore } from "./notebook-store"
+import { Cell as CellType, notebook$ } from "./notebook-store-legend"
 
 interface CodeCellProps {
   cell: CellType
@@ -27,7 +28,7 @@ function setupKeybindings(editor: editor.IStandaloneCodeEditor) {
   editor.addCommand(
     monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
     () => {
-      setIsOpen(true)
+      commandPalette$.isOpen.set(true)
     },
     "",
   )
@@ -52,14 +53,13 @@ function setupKeybindings(editor: editor.IStandaloneCodeEditor) {
 
 const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
   ({ cell, isFocused }, ref) => {
-    const updateCell = useNotebookStore((state) => state.updateCell)
-    const globals = useNotebookStore((state) => state.globalObject)
-    const setIsOpen = useCommandPaletteStore((state) => state.setIsOpen)
+    const globals = use$(notebook$.globalObject)
     const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
 
     const handleEditorDidMount = useCallback(
       (editor: editor.IStandaloneCodeEditor) => {
         editorRef.current = editor
+        setupKeybindings(editor)
 
         editor.addCommand(
           monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF,
@@ -75,7 +75,7 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
         editor.addCommand(
           monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
           () => {
-            setIsOpen(true)
+            commandPalette$.isOpen.set(true)
           },
           "",
         )
@@ -105,7 +105,7 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
           command: null,
         })
       },
-      [setIsOpen],
+      [],
     )
 
     React.useEffect(() => {
@@ -117,12 +117,12 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
     const run = useCallback(
       (code: string) =>
         runCode(code, globals, (result) => {
-          updateCell(cell.id, { output: result.output })
+          notebook$.updateCell(cell.id, { output: result.output })
           for (const [key, value] of Object.entries(result.output)) {
             registerGlobalVariable(key, value)
           }
         }),
-      [cell.id, updateCell, globals],
+      [cell.id, globals],
     )
 
     return (
@@ -146,7 +146,7 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
               language="typescript"
               value={cell.content}
               onChange={(value) => {
-                updateCell(cell.id, { content: value ?? "" })
+                notebook$.updateCell(cell.id, { content: value ?? "" })
               }}
               onMount={handleEditorDidMount}
             />

@@ -1,3 +1,4 @@
+import { use$ } from "@legendapp/state/react"
 import { Search, Variable } from "lucide-react"
 import * as React from "react"
 import {
@@ -8,16 +9,13 @@ import {
   CommandItem,
   CommandList,
 } from "../components/ui/command"
-import { useNotebookStore } from "../notebook/notebook-store"
-import { useCommandPaletteStore, useCommandStore } from "./command-store"
+import { notebook$ } from "../notebook/notebook-store-legend"
+import { command$, commandPalette$ } from "./command-store"
 
 export function CommandPalette() {
-  const isOpen = useCommandPaletteStore((state) => state.isOpen)
-  const setIsOpen = useCommandPaletteStore((state) => state.setIsOpen)
-  const addCell = useNotebookStore((state) => state.addCell)
-  const cells = useNotebookStore((state) => state.cells)
-  const setFocusedCell = useNotebookStore((state) => state.setFocusedCell)
-  const globalVariables = useCommandStore((state) => state.commands)
+  const isOpen = use$(commandPalette$.isOpen)
+  const cells = use$(notebook$.cells)
+  const globalVariables = use$(command$.commands)
 
   const globals = React.useMemo(() => {
     return Object.fromEntries(
@@ -31,7 +29,7 @@ export function CommandPalette() {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
-        setIsOpen(true)
+        commandPalette$.isOpen.set(true)
       }
     }
 
@@ -40,15 +38,15 @@ export function CommandPalette() {
   }, [])
 
   return isOpen ? (
-    <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
+    <CommandDialog open={isOpen} onOpenChange={commandPalette$.toggle}>
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Actions">
           <CommandItem
             onSelect={() => {
-              addCell("code")
-              setIsOpen(false)
+              notebook$.addCell("code")
+              commandPalette$.isOpen.set(false)
             }}
           >
             <Search className="w-4 h-4 mr-2" />
@@ -61,8 +59,8 @@ export function CommandPalette() {
             <CommandItem
               key={cell.id}
               onSelect={() => {
-                setFocusedCell(cell.id)
-                setIsOpen(false)
+                notebook$.setFocusedCell(cell.id)
+                commandPalette$.isOpen.set(false)
               }}
               className="flex justify-between items-center"
             >
@@ -81,7 +79,7 @@ export function CommandPalette() {
               key={name}
               onSelect={() => {
                 // Could add action here if needed
-                setIsOpen(false)
+                commandPalette$.isOpen.set(false)
               }}
               className="flex justify-between items-center"
             >
