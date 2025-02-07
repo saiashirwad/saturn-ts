@@ -27,10 +27,10 @@ export class JavaScriptExecutor {
 
   private initializeWorker() {
     try {
-      this.worker = new Worker(new URL("./js.worker.ts", import.meta.url), {
-        type: "module",
-        name: "javascript-executor-worker",
-      })
+      this.worker = new Worker(
+        new URL("../workers/js.worker.ts", import.meta.url),
+        { type: "module" },
+      )
       this.worker.onmessage = this.handleWorkerMessage.bind(this)
       this.worker.onerror = this.handleWorkerError.bind(this)
     } catch (error) {
@@ -48,14 +48,7 @@ export class JavaScriptExecutor {
       this.executionMap.delete(id)
 
       if (success) {
-        const exports =
-          typeof result === "object" && result !== null
-            ? Object.entries(result)
-                .filter(([key]) => key !== "globals")
-                .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
-            : {}
-
-        execution.resolve({ result: exports, logs })
+        execution.resolve({ result, logs })
       } else {
         execution.reject({ error: error ?? "Unknown error", logs })
       }

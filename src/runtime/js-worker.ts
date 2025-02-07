@@ -61,7 +61,6 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   ;(self as any).logs = []
 
   try {
-    // Create function with only allowed globals
     const fn = new Function(
       ...Object.keys(context),
       `return (async () => {
