@@ -63,6 +63,10 @@ export function CodemirrorEditor(props: {
         onFocus={() => {
           setFocusedCell(props.id)
         }}
+        onBlur={() => {
+          // TODO: execute code if it's a reactive cell
+          // TODO: if it's a function cell, update globals with information about the function
+        }}
       />
     </div>
   )

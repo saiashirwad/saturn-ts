@@ -16,17 +16,17 @@ type FunctionArg = {
   type: string
 }
 
-export interface FunctionCell extends BaseCell<"function"> {
+export interface NonReactiveCodeCell extends BaseCell<"non-reactive"> {
   name: string
   args: FunctionArg[]
   body: string
   returnType: string
 }
 
-function FunctionCell(): FunctionCell {
+function NonReactiveCodeCell(): NonReactiveCodeCell {
   return {
     id: createId(),
-    type: "function",
+    type: "non-reactive",
     error: null,
     dependencies: [],
     content: "",
@@ -37,44 +37,18 @@ function FunctionCell(): FunctionCell {
   }
 }
 
-export function addFunctionCell() {
-  addCell(FunctionCell())
+export function addNonReactiveCodeCell() {
+  addCell(NonReactiveCodeCell())
 }
 
-export interface VariableDeclarationCell extends BaseCell<"variable"> {
-  name: string
-  body: string
-  // TODO: fix this
-  dataType: string
-  value: any
-}
-
-function VariableDeclarationCell(): VariableDeclarationCell {
-  return {
-    id: createId(),
-    type: "variable",
-    error: null,
-    dependencies: [],
-    content: "",
-    name: "",
-    body: "",
-    dataType: "",
-    value: null,
-  }
-}
-
-export function addVariableDeclarationCell() {
-  addCell(VariableDeclarationCell())
-}
-
-export interface ReactiveCell extends BaseCell<"reactive"> {
+export interface ReactiveCodeCell extends BaseCell<"reactive"> {
   name: string
   body: string
   returnType: string
   cachedValue: any
 }
 
-function ReactiveCell(): ReactiveCell {
+function ReactiveCodeCell(): ReactiveCodeCell {
   return {
     id: createId(),
     type: "reactive",
@@ -88,11 +62,11 @@ function ReactiveCell(): ReactiveCell {
   }
 }
 
-export function addReactiveCell() {
-  addCell(ReactiveCell())
+export function addReactiveCodeCell() {
+  addCell(ReactiveCodeCell())
 }
 
-export type Cell = FunctionCell | VariableDeclarationCell | ReactiveCell
+export type Cell = NonReactiveCodeCell | ReactiveCodeCell
 
 interface NotebookState {
   cells: Cell[]
