@@ -1,5 +1,5 @@
 import { langs, loadLanguage } from "@uiw/codemirror-extensions-langs"
-import { githubDark, githubLight } from "@uiw/codemirror-themes-all"
+import { githubLight, tokyoNight } from "@uiw/codemirror-themes-all"
 import CodeMirror from "@uiw/react-codemirror"
 import { editor } from "monaco-editor"
 import { useMemo } from "react"
@@ -40,7 +40,7 @@ export function Monaco(props: {
         autocompletion: false,
         indentOnInput: false,
       }}
-      theme={theme === "dark" ? githubDark : githubLight}
+      theme={theme === "dark" ? tokyoNight : githubLight}
       extensions={[langs.tsx()]}
       // language={props.language}
     />

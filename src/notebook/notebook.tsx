@@ -22,7 +22,7 @@ export function Notebook() {
   }, [focusedCellId])
 
   return (
-    <div className="min-h-screen bg-white text-black dark:bg-black dark:text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <CommandPalette />
       <div className="flex items-center justify-between px-2 py-1 border-b border-border">
         <button
