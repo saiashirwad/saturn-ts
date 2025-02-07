@@ -130,22 +130,18 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
     )
 
     return (
-      <div
-        ref={ref}
-        className="flex flex-col border-b border-gray-200 dark:border-gray-700"
-      >
-        <div className="flex">
-          <div className="p-2 select-none flex flex-col items-end text-gray-400 dark:text-gray-500">
-            <button
-              className="text-green-700 dark:text-green-600 hover:text-gray-600"
-              onClick={() => run(cell.content)}
-              title="Run cell"
-            >
-              ▶
-            </button>
-          </div>
-
-          <div className="flex-1 pl-5">
+      <div ref={ref} className="flex px-4 pt-4 gap-2">
+        <div>
+          <button
+            className="text-primary hover:text-primary/80 text-sm"
+            onClick={() => run(cell.content)}
+            title="Run cell"
+          >
+            ▶
+          </button>
+        </div>
+        <div className="border border-border rounded-md overflow-hidden flex-1">
+          <div className="flex-1">
             <Monaco
               language="typescript"
               value={cell.content}
@@ -155,15 +151,13 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
               onMount={handleEditorDidMount}
             />
           </div>
-        </div>
 
-        {cell.output && (
-          <div className="flex pl-10">
+          {cell.output && (
             <div className="flex-1 p-2 font-mono text-sm bg-background text-foreground border-t border-gray-200 dark:border-gray-700">
               <pre>{JSON.stringify(cell.output, null, 2)}</pre>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     )
   },
