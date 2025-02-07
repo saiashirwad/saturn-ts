@@ -3,10 +3,12 @@ import * as React from "react"
 import { CommandPalette } from "../command/command-palette"
 import { CodeCell } from "./code-cell"
 import { addCell, notebook$ } from "./notebook-store-legend"
+import { useDarkMode } from "../utils/useDarkMode"
 
 export function Notebook() {
   const cells = use$(notebook$.cells)
   const focusedCellId = use$(notebook$.focusedCellId)
+  useDarkMode()
 
   const cellRefs = React.useRef<Map<string, HTMLDivElement>>(new Map())
 
@@ -20,7 +22,7 @@ export function Notebook() {
   }, [focusedCellId])
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-white text-black dark:bg-black dark:text-white">
       <CommandPalette />
       <div className="flex items-center justify-between px-2 py-1 border-b border-border">
         <button

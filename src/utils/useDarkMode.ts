@@ -10,6 +10,15 @@ export function useDarkMode() {
   )
 
   useEffect(() => {
+    // Apply dark class to html element
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+    }
+  }, [theme])
+
+  useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
     const handleChange = (e: MediaQueryListEvent) => {
       setTheme(e.matches ? "dark" : "light")
