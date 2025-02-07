@@ -9,7 +9,11 @@ import {
 } from "../command/command-store"
 import { Monaco } from "../monaco/monaco-editor"
 import { evaluateCode } from "../quickjs"
-import { Cell as CellType, notebook$ } from "./notebook-store-legend"
+import {
+  Cell as CellType,
+  notebook$,
+  updateCell,
+} from "./notebook-store-legend"
 
 interface CodeCellProps {
   cell: CellType
@@ -117,7 +121,7 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
     const run = useCallback(
       (code: string) =>
         runCode(code, globals, (result) => {
-          notebook$.updateCell(cell.id, { output: result.output })
+          updateCell(cell.id, { output: result.output })
           for (const [key, value] of Object.entries(result.output)) {
             registerGlobalVariable(key, value)
           }
@@ -146,7 +150,7 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
               language="typescript"
               value={cell.content}
               onChange={(value) => {
-                notebook$.updateCell(cell.id, { content: value ?? "" })
+                updateCell(cell.id, { content: value ?? "" })
               }}
               onMount={handleEditorDidMount}
             />

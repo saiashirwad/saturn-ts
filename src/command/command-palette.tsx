@@ -9,7 +9,11 @@ import {
   CommandItem,
   CommandList,
 } from "../components/ui/command"
-import { notebook$ } from "../notebook/notebook-store-legend"
+import {
+  addCell,
+  notebook$,
+  setFocusedCell,
+} from "../notebook/notebook-store-legend"
 import { command$, commandPalette$ } from "./command-store"
 
 export function CommandPalette() {
@@ -38,14 +42,19 @@ export function CommandPalette() {
   }, [])
 
   return isOpen ? (
-    <CommandDialog open={isOpen} onOpenChange={commandPalette$.toggle}>
+    <CommandDialog
+      open={isOpen}
+      onOpenChange={(s) => {
+        commandPalette$.isOpen.set(s)
+      }}
+    >
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Actions">
           <CommandItem
             onSelect={() => {
-              notebook$.addCell("code")
+              addCell("code")
               commandPalette$.isOpen.set(false)
             }}
           >
@@ -59,7 +68,7 @@ export function CommandPalette() {
             <CommandItem
               key={cell.id}
               onSelect={() => {
-                notebook$.setFocusedCell(cell.id)
+                setFocusedCell(cell.id)
                 commandPalette$.isOpen.set(false)
               }}
               className="flex justify-between items-center"

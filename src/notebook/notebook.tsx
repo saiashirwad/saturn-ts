@@ -2,7 +2,7 @@ import { use$ } from "@legendapp/state/react"
 import * as React from "react"
 import { CommandPalette } from "../command/command-palette"
 import { CodeCell } from "./code-cell"
-import { notebook$ } from "./notebook-store-legend"
+import { addCell, notebook$ } from "./notebook-store-legend"
 
 export function Notebook() {
   const cells = use$(notebook$.cells)
@@ -25,7 +25,7 @@ export function Notebook() {
       <div className="flex items-center justify-between px-2 py-1 border-b border-gray-200 dark:border-gray-700">
         <button
           className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-          onClick={() => notebook$.addCell("code")}
+          onClick={() => addCell("code")}
           title="Add cell (⌘K)"
         >
           +
