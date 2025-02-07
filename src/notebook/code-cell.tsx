@@ -16,6 +16,40 @@ interface CodeCellProps {
   isFocused: boolean
 }
 
+function setupKeybindings(editor: editor.IStandaloneCodeEditor) {
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF, () => {}, "")
+
+  monaco.editor.addKeybindingRule({
+    keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF,
+    command: null,
+  })
+
+  editor.addCommand(
+    monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
+    () => {
+      setIsOpen(true)
+    },
+    "",
+  )
+
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, () => {}, "")
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyJ, () => {}, "")
+
+  // Keep the keybinding rules to prevent Monaco's default behaviors
+  monaco.editor.addKeybindingRule({
+    keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
+    command: null,
+  })
+  monaco.editor.addKeybindingRule({
+    keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP,
+    command: null,
+  })
+  monaco.editor.addKeybindingRule({
+    keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyJ,
+    command: null,
+  })
+}
+
 const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
   ({ cell, isFocused }, ref) => {
     const updateCell = useNotebookStore((state) => state.updateCell)
