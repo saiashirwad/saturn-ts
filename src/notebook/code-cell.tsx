@@ -1,15 +1,21 @@
 import { use$ } from "@legendapp/state/react"
+import { Play, Trash2 } from "lucide-react"
 import type { editor } from "monaco-editor"
 import * as monaco from "monaco-editor"
 import * as React from "react"
 import { memo, useCallback, useRef } from "react"
+import { CodemirrorEditor } from "../codemirror/codemirror-editor"
 import {
   commandPalette$,
   registerGlobalVariable,
 } from "../command/command-store"
-import { CodemirrorEditor } from "../codemirror/codemirror-editor"
 import { evaluateCode } from "../quickjs"
-import { Cell as CellType, notebook$, updateCell } from "./notebook-store"
+import {
+  Cell as CellType,
+  deleteCell,
+  notebook$,
+  updateCell,
+} from "./notebook-store"
 
 interface CodeCellProps {
   cell: CellType
@@ -36,7 +42,6 @@ function setupKeybindings(editor: editor.IStandaloneCodeEditor) {
   editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, () => {}, "")
   editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyJ, () => {}, "")
 
-  // Keep the keybinding rules to prevent Monaco's default behaviors
   monaco.editor.addKeybindingRule({
     keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
     command: null,
@@ -127,13 +132,19 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
 
     return (
       <div ref={ref} className="flex px-4 pt-4 gap-2">
-        <div>
+        <div className="flex flex-col items-center gap-2">
           <button
-            className="text-primary hover:text-primary/80 text-sm"
+            className="text-primary hover:text-primary/80 text-sm border p-2 rounded hover:bg-primary/10"
             onClick={() => run(cell.content)}
             title="Run cell"
           >
-            ▶
+            <Play className="w-3 h-3" />
+          </button>
+          <button
+            className="text-primary hover:text-primary/80 text-xs border p-2 rounded hover:bg-primary/10"
+            onClick={() => deleteCell(cell.id)}
+          >
+            <Trash2 className="w-3 h-3" />
           </button>
         </div>
         <div className="border border-border rounded-md overflow-hidden flex-1">

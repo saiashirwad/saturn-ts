@@ -1,4 +1,4 @@
-import { observable } from "@legendapp/state"
+import { batch, observable } from "@legendapp/state"
 import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/local-storage"
 import { syncObservable } from "@legendapp/state/sync"
 import { createId } from "@paralleldrive/cuid2"
@@ -14,14 +14,12 @@ export interface Cell {
 
 interface NotebookState {
   cells: Cell[]
-  selectedCellId: string | null
   globalObject: Record<string, any>
   focusedCellId: string | null
 }
 
 export const notebook$ = observable<NotebookState>({
   cells: [],
-  selectedCellId: null,
   globalObject: {},
   focusedCellId: null,
 })
@@ -38,25 +36,26 @@ export function setFocusedCell(id: string | null) {
 }
 
 export function addCell(type: "code" | "markdown", belowId?: string) {
-  const newCell: Cell = {
-    id: createId(),
-    type,
-    content: "",
-    output: {},
-    executionCount: null,
-    error: null,
-  }
+  batch(() => {
+    const newCell: Cell = {
+      id: createId(),
+      type,
+      content: "",
+      output: {},
+      executionCount: null,
+      error: null,
+    }
 
-  const cells = notebook$.cells.peek()
-  const index = belowId ? cells.findIndex((c) => c.id === belowId) : -1
+    const cells = notebook$.cells.peek()
+    const index = belowId ? cells.findIndex((c) => c.id === belowId) : -1
 
-  if (index !== -1) {
-    notebook$.cells.splice(index + 1, 0, newCell)
-  } else {
-    notebook$.cells.push(newCell)
-  }
-  notebook$.selectedCellId.set(newCell.id)
-  notebook$.focusedCellId.set(newCell.id)
+    if (index === -1) {
+      notebook$.cells.push(newCell)
+    } else {
+      notebook$.cells.splice(index + 1, 0, newCell)
+    }
+    notebook$.focusedCellId.set(newCell.id)
+  })
 }
 
 export function deleteCell(id: string) {
@@ -65,8 +64,8 @@ export function deleteCell(id: string) {
   if (index !== -1) {
     notebook$.cells.splice(index, 1)
   }
-  if (notebook$.selectedCellId.peek() === id) {
-    notebook$.selectedCellId.set(null)
+  if (notebook$.focusedCellId.peek() === id) {
+    notebook$.focusedCellId.set(null)
   }
 }
 
@@ -102,7 +101,6 @@ export function setCellError(id: string, error: string) {
 }
 
 export function selectCell(id: string) {
-  notebook$.selectedCellId.set(id)
   notebook$.focusedCellId.set(id)
 }
 

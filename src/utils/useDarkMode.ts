@@ -10,7 +10,6 @@ export function useDarkMode() {
   )
 
   useEffect(() => {
-    // Apply dark class to html element
     if (theme === "dark") {
       document.documentElement.classList.add("dark")
     } else {

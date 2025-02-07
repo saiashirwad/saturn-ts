@@ -42,25 +42,28 @@ export function CodemirrorEditor(props: {
   }, [props.isFocused])
 
   return (
-    <CodeMirror
-      value={props.value}
-      height={editorHeight}
-      onChange={props.onChange}
-      basicSetup={{
-        foldGutter: false,
-        dropCursor: false,
-        allowMultipleSelections: false,
-        autocompletion: false,
-        indentOnInput: false,
-      }}
-      theme={theme === "dark" ? tokyoNight : githubLight}
-      extensions={[langs.tsx()]}
-      onCreateEditor={(view) => {
-        editorRef.current = view
-      }}
-      onFocus={() => {
-        setFocusedCell(props.id)
-      }}
-    />
+    <div style={{ height: editorHeight }}>
+      <CodeMirror
+        value={props.value}
+        height={editorHeight}
+        onChange={props.onChange}
+        basicSetup={{
+          foldGutter: false,
+          dropCursor: false,
+          allowMultipleSelections: false,
+          autocompletion: false,
+          indentOnInput: false,
+          highlightActiveLine: true,
+        }}
+        theme={theme === "dark" ? tokyoNight : githubLight}
+        extensions={[langs.tsx()]}
+        onCreateEditor={(view) => {
+          editorRef.current = view
+        }}
+        onFocus={() => {
+          setFocusedCell(props.id)
+        }}
+      />
+    </div>
   )
 }

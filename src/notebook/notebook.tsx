@@ -1,9 +1,9 @@
 import { use$ } from "@legendapp/state/react"
 import * as React from "react"
 import { CommandPalette } from "../command/command-palette"
+import { useDarkMode } from "../utils/useDarkMode"
 import { CodeCell } from "./code-cell"
 import { addCell, notebook$ } from "./notebook-store"
-import { useDarkMode } from "../utils/useDarkMode"
 
 export function Notebook() {
   const cells = use$(notebook$.cells)
