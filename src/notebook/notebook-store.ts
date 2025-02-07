@@ -54,7 +54,11 @@ export function addCell(type: "code" | "markdown", belowId?: string) {
     } else {
       notebook$.cells.splice(index + 1, 0, newCell)
     }
-    notebook$.focusedCellId.set(newCell.id)
+
+    // Set focus after a short delay to ensure the component is mounted
+    setTimeout(() => {
+      notebook$.focusedCellId.set(newCell.id)
+    }, 0)
   })
 }
 

@@ -3,7 +3,7 @@ import { Play, Trash2 } from "lucide-react"
 import type { editor } from "monaco-editor"
 import * as monaco from "monaco-editor"
 import * as React from "react"
-import { memo, useCallback, useRef } from "react"
+import { memo, useCallback, useRef, useEffect } from "react"
 import { CodemirrorEditor } from "../codemirror/codemirror-editor"
 import {
   commandPalette$,
@@ -60,64 +60,31 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
   ({ cell, isFocused }, ref) => {
     const globals = use$(notebook$.globalObject)
     const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    // Focus management
+    useEffect(() => {
+      if (isFocused) {
+        editorRef.current?.focus()
+        containerRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        })
+      }
+    }, [isFocused])
 
     const handleEditorDidMount = useCallback(
       (editor: editor.IStandaloneCodeEditor) => {
         editorRef.current = editor
         setupKeybindings(editor)
 
-        editor.addCommand(
-          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF,
-          () => {},
-          "",
-        )
-
-        monaco.editor.addKeybindingRule({
-          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF,
-          command: null,
-        })
-
-        editor.addCommand(
-          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
-          () => {
-            commandPalette$.isOpen.set(true)
-          },
-          "",
-        )
-
-        editor.addCommand(
-          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP,
-          () => {},
-          "",
-        )
-        editor.addCommand(
-          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyJ,
-          () => {},
-          "",
-        )
-
-        // Keep the keybinding rules to prevent Monaco's default behaviors
-        monaco.editor.addKeybindingRule({
-          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
-          command: null,
-        })
-        monaco.editor.addKeybindingRule({
-          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP,
-          command: null,
-        })
-        monaco.editor.addKeybindingRule({
-          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyJ,
-          command: null,
-        })
+        // If this is a newly created cell, focus it
+        if (isFocused) {
+          setTimeout(() => editor.focus(), 0)
+        }
       },
-      [],
+      [isFocused],
     )
-
-    React.useEffect(() => {
-      if (isFocused) {
-        editorRef.current?.focus()
-      }
-    }, [isFocused])
 
     const run = useCallback(
       (code: string) =>
@@ -131,23 +98,35 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
     )
 
     return (
-      <div ref={ref} className="flex px-4 pt-4 gap-2">
+      <div
+        ref={ref}
+        className="flex px-4 pt-4 gap-2"
+        role="region"
+        aria-label={`Code cell ${cell.id}`}
+      >
         <div className="flex flex-col items-center gap-2">
           <button
             className="text-primary hover:text-primary/80 text-sm border p-2 rounded hover:bg-primary/10"
             onClick={() => run(cell.content)}
             title="Run cell"
+            aria-label="Run code in cell"
           >
             <Play className="w-3 h-3" />
           </button>
           <button
             className="text-primary hover:text-primary/80 text-xs border p-2 rounded hover:bg-primary/10"
             onClick={() => deleteCell(cell.id)}
+            aria-label="Delete cell"
           >
             <Trash2 className="w-3 h-3" />
           </button>
         </div>
-        <div className="border border-border rounded-md overflow-hidden flex-1">
+        <div
+          ref={containerRef}
+          className="border border-border rounded-md overflow-hidden flex-1"
+          role="textbox"
+          aria-label="Code editor"
+        >
           <CodemirrorEditor
             id={cell.id}
             isFocused={isFocused}
@@ -160,7 +139,11 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
           />
 
           {cell.output && (
-            <div className="flex-1 p-2 font-mono text-sm bg-background text-foreground border-t border-gray-200 dark:border-gray-700">
+            <div
+              className="flex-1 p-2 font-mono text-sm bg-background text-foreground border-t border-gray-200 dark:border-gray-700"
+              role="region"
+              aria-label="Cell output"
+            >
               <pre>{JSON.stringify(cell.output, null, 2)}</pre>
             </div>
           )}
