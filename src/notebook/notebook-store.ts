@@ -3,14 +3,101 @@ import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/
 import { syncObservable } from "@legendapp/state/sync"
 import { createId } from "@paralleldrive/cuid2"
 
-export interface Cell {
+interface BaseCell<T> {
   id: string
-  type: "code" | "markdown"
-  content: string
-  output: Record<string, any>
-  executionCount: number | null
+  type: T
   error: string | null
+  dependencies: string[]
 }
+
+type FunctionArg = {
+  name: string
+  type: string
+}
+
+export interface FunctionCell extends BaseCell<"function"> {
+  __raw: string
+
+  name: string
+  args: FunctionArg[]
+  body: string
+  returnType: string
+}
+
+function FunctionCell(): FunctionCell {
+  return {
+    id: createId(),
+    type: "function",
+    error: null,
+    dependencies: [],
+    __raw: "",
+    name: "",
+    args: [],
+    body: "",
+    returnType: "",
+  }
+}
+
+export function addFunctionCell() {
+  notebook$.cells.push(FunctionCell())
+}
+
+export interface VariableDeclarationCell extends BaseCell<"variable"> {
+  __raw: string
+
+  name: string
+  body: string
+  // TODO: fix this
+  dataType: string
+  value: any
+}
+
+function VariableDeclarationCell(): VariableDeclarationCell {
+  return {
+    id: createId(),
+    type: "variable",
+    error: null,
+    dependencies: [],
+    __raw: "",
+    name: "",
+    body: "",
+    dataType: "",
+    value: null,
+  }
+}
+
+export function addVariableDeclarationCell() {
+  notebook$.cells.push(VariableDeclarationCell())
+}
+
+export interface ReactiveCell extends BaseCell<"reactive"> {
+  __raw: string
+
+  name: string
+  body: string
+  returnType: string
+  cachedValue: any
+}
+
+function ReactiveCell(): ReactiveCell {
+  return {
+    id: createId(),
+    type: "reactive",
+    error: null,
+    dependencies: [],
+    __raw: "",
+    name: "",
+    body: "",
+    returnType: "",
+    cachedValue: null,
+  }
+}
+
+export function addReactiveCell() {
+  notebook$.cells.push(ReactiveCell())
+}
+
+export type Cell = FunctionCell | VariableDeclarationCell | ReactiveCell
 
 interface NotebookState {
   cells: Cell[]

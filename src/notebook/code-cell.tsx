@@ -169,40 +169,12 @@ export async function runCode(
   const executor = new JavaScriptExecutor()
 
   try {
-    // Wrap the code to handle exports
     const wrappedCode = `
-      const globals = ${JSON.stringify(globals)};
-      console.log(globals)
-      let exports = {};
-      
-      // Capture exports
-      const rawExports = {};
-      Object.defineProperty(globalThis, 'export', {
-        set: function(val) {
-          // Do nothing - we only care about export const/let
-        },
-        get: function() {
-          return function() {}
-        }
-      });
-      
-      Object.defineProperty(globalThis, 'exports', {
-        set: function(val) {
-          Object.assign(rawExports, val);
-        },
-        get: function() {
-          return rawExports;
-        }
-      });
-      
-      // Run the actual code
       ${code}
-      
-      // Return both globals and exports
-      ({...globals, ...rawExports});
     `
 
     const result = await executor.execute(wrappedCode)
+    console.log(result)
 
     onResult({
       type: "success",
@@ -221,6 +193,7 @@ export async function runCode(
       })
     }
   } catch (error) {
+    console.log(error)
     onResult({
       type: "error",
       output: {

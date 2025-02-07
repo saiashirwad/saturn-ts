@@ -1,3 +1,5 @@
+import { runtimeContext } from "./context"
+
 export interface WorkerMessage {
   id: string
   code: string
@@ -11,50 +13,7 @@ export interface WorkerResponse {
   logs: string[]
 }
 
-const context = {
-  console: {
-    log: (...args: any[]) => {
-      const formatted = args
-        .map((arg) =>
-          typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
-        )
-        .join(" ")
-      ;(self as any).logs.push(formatted)
-    },
-    error: (...args: any[]) => {
-      const formatted = args
-        .map((arg) =>
-          typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
-        )
-        .join(" ")
-      ;(self as any).logs.push(`Error: ${formatted}`)
-    },
-  },
-  fetch: async (url: string) => {
-    const response = await self.fetch(url)
-    const text = await response.text()
-    try {
-      return {
-        ok: response.ok,
-        status: response.status,
-        statusText: response.statusText,
-        json: () => JSON.parse(text),
-        text: () => text,
-      }
-    } catch (e) {
-      return {
-        ok: response.ok,
-        status: response.status,
-        statusText: response.statusText,
-        text: () => text,
-      }
-    }
-  },
-  Math,
-  JSON,
-}
-
-export type ContextType = typeof context
+export type ContextType = typeof runtimeContext
 
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   const { id, code } = e.data
@@ -62,13 +21,13 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
   try {
     const fn = new Function(
-      ...Object.keys(context),
+      ...Object.keys(runtimeContext),
       `return (async () => {
         ${code}
       })()`,
     )
 
-    const result = await fn(...Object.values(context))
+    const result = await fn(...Object.values(runtimeContext))
 
     const response: WorkerResponse = {
       id,

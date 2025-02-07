@@ -9,7 +9,14 @@ import {
   CommandItem,
   CommandList,
 } from "../components/ui/command"
-import { addCell, notebook$, setFocusedCell } from "../notebook/notebook-store"
+import {
+  addCell,
+  addFunctionCell,
+  addReactiveCell,
+  addVariableDeclarationCell,
+  notebook$,
+  setFocusedCell,
+} from "../notebook/notebook-store"
 import { command$, commandPalette$ } from "./command-store"
 
 export function CommandPalette() {
@@ -50,12 +57,32 @@ export function CommandPalette() {
         <CommandGroup heading="Actions">
           <CommandItem
             onSelect={() => {
-              addCell("code")
+              addReactiveCell()
               commandPalette$.isOpen.set(false)
             }}
           >
             <Search className="w-4 h-4 mr-2" />
-            Add Code Cell
+            New Reactive Cell
+          </CommandItem>
+
+          <CommandItem
+            onSelect={() => {
+              addVariableDeclarationCell()
+              commandPalette$.isOpen.set(false)
+            }}
+          >
+            <Search className="w-4 h-4 mr-2" />
+            New Variable
+          </CommandItem>
+
+          <CommandItem
+            onSelect={() => {
+              addFunctionCell()
+              commandPalette$.isOpen.set(false)
+            }}
+          >
+            <Search className="w-4 h-4 mr-2" />
+            New Function Cell
           </CommandItem>
         </CommandGroup>
 
