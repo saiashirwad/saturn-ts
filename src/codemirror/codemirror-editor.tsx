@@ -10,9 +10,9 @@ langs.tsx()
 
 const calculateEditorHeight = (content: string) => {
   const lineCount = content.split("\n").length
-  const lineHeight = 20 // pixels per line
-  const padding = 15 // additional padding (top + bottom)
-  return Math.max(lineCount * lineHeight + padding, 50) // minimum height of 50px
+  const lineHeight = 18 // CodeMirror default line height
+  const padding = 12 // CodeMirror default padding
+  return Math.max(lineCount * lineHeight + padding, 40) // minimum height of 40px for CodeMirror
 }
 
 export function Monaco(props: {

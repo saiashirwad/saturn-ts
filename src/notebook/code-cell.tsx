@@ -7,7 +7,7 @@ import {
   commandPalette$,
   registerGlobalVariable,
 } from "../command/command-store"
-import { Monaco } from "../monaco/monaco-editor"
+import { Monaco } from "../codemirror/codemirror-editor"
 import { evaluateCode } from "../quickjs"
 import {
   Cell as CellType,
@@ -141,16 +141,14 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
           </button>
         </div>
         <div className="border border-border rounded-md overflow-hidden flex-1">
-          <div className="flex-1">
-            <Monaco
-              language="typescript"
-              value={cell.content}
-              onChange={(value) => {
-                updateCell(cell.id, { content: value ?? "" })
-              }}
-              onMount={handleEditorDidMount}
-            />
-          </div>
+          <Monaco
+            language="typescript"
+            value={cell.content}
+            onChange={(value) => {
+              updateCell(cell.id, { content: value ?? "" })
+            }}
+            onMount={handleEditorDidMount}
+          />
 
           {cell.output && (
             <div className="flex-1 p-2 font-mono text-sm bg-background text-foreground border-t border-gray-200 dark:border-gray-700">
@@ -165,7 +163,6 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
 
 ForwardedCodeCell.displayName = "CodeCell"
 
-// Then wrap it with memo
 export const CodeCell = memo(ForwardedCodeCell)
 
 export async function runCode(
