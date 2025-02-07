@@ -3,6 +3,5 @@ Saturn is a Jupyter-like interactive notebook environment for TypeScript, featur
 * Reactive notebook cells for real-time code execution
 * Modern web interface built with React
 * Monaco Editor for a powerful code editing experience
-* State management powered by Zustand and Zundo
-* QuickJS-Emscripten as the JavaScript runtime engine
+* State management powered by Legend App State
 * Clean, responsive design using Tailwind CSS
