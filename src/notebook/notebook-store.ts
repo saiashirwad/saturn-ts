@@ -56,6 +56,7 @@ export function addCell(type: "code" | "markdown", belowId?: string) {
     notebook$.cells.push(newCell)
   }
   notebook$.selectedCellId.set(newCell.id)
+  notebook$.focusedCellId.set(newCell.id)
 }
 
 export function deleteCell(id: string) {

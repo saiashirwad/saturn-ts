@@ -34,7 +34,6 @@ export function Notebook() {
         </button>
       </div>
 
-      <div>{focusedCellId}</div>
       <div className="flex flex-col w-full">
         {cells.map((cell, index) => (
           <CodeCell
