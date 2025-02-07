@@ -5,7 +5,7 @@ import CodeMirror from "@uiw/react-codemirror"
 import { editor } from "monaco-editor"
 import { useEffect, useMemo, useRef } from "react"
 import { setFocusedCell } from "../notebook/notebook-store"
-import { useDarkMode } from "../utils/useDarkMode"
+import { useDarkMode } from "../utils/use-dark-mode"
 
 loadLanguage("tsx")
 langs.tsx()

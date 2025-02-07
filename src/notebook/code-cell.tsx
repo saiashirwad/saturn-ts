@@ -9,7 +9,7 @@ import {
   commandPalette$,
   registerGlobalVariable,
 } from "../command/command-store"
-import { evaluateCode } from "../quickjs"
+import { JavaScriptExecutor } from "../runtime/js-executor"
 import {
   Cell as CellType,
   deleteCell,
@@ -166,39 +166,75 @@ export async function runCode(
     error: any
   }) => void,
 ) {
+  const executor = new JavaScriptExecutor()
+
   try {
-    const result = await evaluateCode(code, globals)
-    if (result.type === "success") {
-      onResult({
-        type: "success",
-        output: result.output,
-        error: null,
-      })
-      let newGlobals: Record<string, any> = {}
-      for (const [key, value] of Object.entries(result.output)) {
-        newGlobals[key] = value
-      }
-      onResult({
-        type: "success",
-        output: newGlobals,
-        error: null,
-      })
-    } else {
-      onResult({
-        type: "error",
-        output: {
-          error: result.error,
+    // Wrap the code to handle exports
+    const wrappedCode = `
+      const globals = ${JSON.stringify(globals)};
+      console.log(globals)
+      let exports = {};
+      
+      // Capture exports
+      const rawExports = {};
+      Object.defineProperty(globalThis, 'export', {
+        set: function(val) {
+          // Do nothing - we only care about export const/let
         },
-        error: result.error,
+        get: function() {
+          return function() {}
+        }
+      });
+      
+      Object.defineProperty(globalThis, 'exports', {
+        set: function(val) {
+          Object.assign(rawExports, val);
+        },
+        get: function() {
+          return rawExports;
+        }
+      });
+      
+      // Run the actual code
+      ${code}
+      
+      // Return both globals and exports
+      ({...globals, ...rawExports});
+    `
+
+    const result = await executor.execute(wrappedCode)
+
+    onResult({
+      type: "success",
+      output: result.result as Record<string, any>,
+      error: null,
+    })
+
+    if (result.logs.length > 0) {
+      onResult({
+        type: "success",
+        output: {
+          ...(result.result as Record<string, any>),
+          logs: result.logs,
+        },
+        error: null,
       })
     }
   } catch (error) {
     onResult({
       type: "error",
       output: {
-        error: error,
+        error: error instanceof Error ? error.message : String(error),
+        logs: (error as ExecutionError)?.logs || [],
       },
       error: error,
     })
+  } finally {
+    executor.terminate()
   }
+}
+
+interface ExecutionError {
+  error: string
+  logs: string[]
 }

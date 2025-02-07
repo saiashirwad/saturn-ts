@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   worker: {
     format: "es",
+    plugins: [],
   },
   server: {
     headers: {
