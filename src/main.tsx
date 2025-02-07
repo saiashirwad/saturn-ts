@@ -9,7 +9,7 @@ import { Playground } from "./playground"
 initializeTheme()
 
 function App() {
-  //useDarkMode()
+  useDarkMode()
   //return <Notebook />
   return <Playground />
 }
