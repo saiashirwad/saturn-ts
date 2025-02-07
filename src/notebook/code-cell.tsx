@@ -159,7 +159,7 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
 
         {cell.output && (
           <div className="flex pl-10">
-            <div className="flex-1 p-2 font-mono text-sm text-gray-800 dark:text-gray-300 bg-gray-50 dark:bg-[#252526] border-t border-gray-200 dark:border-gray-700">
+            <div className="flex-1 p-2 font-mono text-sm bg-background text-foreground border-t border-gray-200 dark:border-gray-700">
               <pre>{JSON.stringify(cell.output, null, 2)}</pre>
             </div>
           </div>

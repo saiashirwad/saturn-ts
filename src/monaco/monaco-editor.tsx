@@ -1,7 +1,12 @@
-import { Editor } from "@monaco-editor/react"
+import { langs, loadLanguage } from "@uiw/codemirror-extensions-langs"
+import { githubDark, githubLight } from "@uiw/codemirror-themes-all"
+import CodeMirror from "@uiw/react-codemirror"
+import { editor } from "monaco-editor"
 import { useMemo } from "react"
 import { useDarkMode } from "../utils/useDarkMode"
-import { editor } from "monaco-editor"
+
+loadLanguage("tsx")
+langs.tsx()
 
 const calculateEditorHeight = (content: string) => {
   const lineCount = content.split("\n").length
@@ -24,36 +29,54 @@ export function Monaco(props: {
   )
 
   return (
-    <Editor
-      defaultValue={props.value}
-      language={props.language}
-      theme={theme === "dark" ? "vs-dark" : "vs-light"}
-      height={editorHeight}
+    <CodeMirror
       value={props.value}
-      onMount={props.onMount}
-      options={{
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        fontSize: 14,
-        lineNumbers: "off",
-        glyphMargin: false,
-        folding: false,
-        padding: { top: 10, bottom: 5 },
-        lineDecorationsWidth: 0,
-        renderLineHighlight: "none",
-        overviewRulerBorder: false,
-        hideCursorInOverviewRuler: true,
-        overviewRulerLanes: 0,
-        scrollbar: {
-          vertical: "hidden",
-          horizontal: "hidden",
-          alwaysConsumeMouseWheel: false,
-          handleMouseWheel: false,
-        },
-        mouseWheelScrollSensitivity: 0,
-        fixedOverflowWidgets: true,
-      }}
+      height={editorHeight}
       onChange={props.onChange}
+      basicSetup={{
+        foldGutter: false,
+        dropCursor: false,
+        allowMultipleSelections: false,
+        autocompletion: false,
+        indentOnInput: false,
+      }}
+      theme={theme === "dark" ? githubDark : githubLight}
+      extensions={[langs.tsx()]}
+      // language={props.language}
     />
   )
+
+  // return (
+  //   <Editor
+  //     defaultValue={props.value}
+  //     language={props.language}
+  //     theme={theme === "dark" ? "vs-dark" : "vs-light"}
+  //     height={editorHeight}
+  //     value={props.value}
+  //     onMount={props.onMount}
+  //     options={{
+  //       minimap: { enabled: false },
+  //       scrollBeyondLastLine: false,
+  //       fontSize: 14,
+  //       lineNumbers: "off",
+  //       glyphMargin: false,
+  //       folding: false,
+  //       padding: { top: 10, bottom: 5 },
+  //       lineDecorationsWidth: 0,
+  //       renderLineHighlight: "none",
+  //       overviewRulerBorder: false,
+  //       hideCursorInOverviewRuler: true,
+  //       overviewRulerLanes: 0,
+  //       scrollbar: {
+  //         vertical: "hidden",
+  //         horizontal: "hidden",
+  //         alwaysConsumeMouseWheel: false,
+  //         handleMouseWheel: false,
+  //       },
+  //       mouseWheelScrollSensitivity: 0,
+  //       fixedOverflowWidgets: true,
+  //     }}
+  //     onChange={props.onChange}
+  //   />
+  // )
 }

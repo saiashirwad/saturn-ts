@@ -20,11 +20,11 @@ export function Notebook() {
   }, [focusedCellId])
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#1e1e1e] text-gray-800 dark:text-gray-300">
+    <div className="min-h-screen bg-background text-foreground">
       <CommandPalette />
-      <div className="flex items-center justify-between px-2 py-1 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between px-2 py-1 border-b border-border">
         <button
-          className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+          className="p-1 text-muted-foreground hover:text-foreground"
           onClick={() => addCell("code")}
           title="Add cell (⌘K)"
         >
