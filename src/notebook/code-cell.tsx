@@ -7,13 +7,9 @@ import {
   commandPalette$,
   registerGlobalVariable,
 } from "../command/command-store"
-import { Monaco } from "../codemirror/codemirror-editor"
+import { CodemirrorEditor } from "../codemirror/codemirror-editor"
 import { evaluateCode } from "../quickjs"
-import {
-  Cell as CellType,
-  notebook$,
-  updateCell,
-} from "./notebook-store-legend"
+import { Cell as CellType, notebook$, updateCell } from "./notebook-store"
 
 interface CodeCellProps {
   cell: CellType
@@ -141,7 +137,9 @@ const ForwardedCodeCell = React.forwardRef<HTMLDivElement, CodeCellProps>(
           </button>
         </div>
         <div className="border border-border rounded-md overflow-hidden flex-1">
-          <Monaco
+          <CodemirrorEditor
+            id={cell.id}
+            isFocused={isFocused}
             language="typescript"
             value={cell.content}
             onChange={(value) => {

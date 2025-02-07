@@ -2,7 +2,7 @@ import { use$ } from "@legendapp/state/react"
 import * as React from "react"
 import { CommandPalette } from "../command/command-palette"
 import { CodeCell } from "./code-cell"
-import { addCell, notebook$ } from "./notebook-store-legend"
+import { addCell, notebook$ } from "./notebook-store"
 import { useDarkMode } from "../utils/useDarkMode"
 
 export function Notebook() {
@@ -34,6 +34,7 @@ export function Notebook() {
         </button>
       </div>
 
+      <div>{focusedCellId}</div>
       <div className="flex flex-col w-full">
         {cells.map((cell, index) => (
           <CodeCell

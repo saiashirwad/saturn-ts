@@ -9,11 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from "../components/ui/command"
-import {
-  addCell,
-  notebook$,
-  setFocusedCell,
-} from "../notebook/notebook-store-legend"
+import { addCell, notebook$, setFocusedCell } from "../notebook/notebook-store"
 import { command$, commandPalette$ } from "./command-store"
 
 export function CommandPalette() {

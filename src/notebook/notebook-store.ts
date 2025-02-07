@@ -102,6 +102,7 @@ export function setCellError(id: string, error: string) {
 
 export function selectCell(id: string) {
   notebook$.selectedCellId.set(id)
+  notebook$.focusedCellId.set(id)
 }
 
 export function moveCellUp(id: string) {
