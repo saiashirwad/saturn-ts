@@ -6,6 +6,7 @@ import { createId } from "@paralleldrive/cuid2"
 interface BaseCell<T> {
   id: string
   type: T
+  content: string
   error: string | null
   dependencies: string[]
 }
@@ -16,8 +17,6 @@ type FunctionArg = {
 }
 
 export interface FunctionCell extends BaseCell<"function"> {
-  __raw: string
-
   name: string
   args: FunctionArg[]
   body: string
@@ -30,7 +29,7 @@ function FunctionCell(): FunctionCell {
     type: "function",
     error: null,
     dependencies: [],
-    __raw: "",
+    content: "",
     name: "",
     args: [],
     body: "",
@@ -39,12 +38,10 @@ function FunctionCell(): FunctionCell {
 }
 
 export function addFunctionCell() {
-  notebook$.cells.push(FunctionCell())
+  addCell(FunctionCell())
 }
 
 export interface VariableDeclarationCell extends BaseCell<"variable"> {
-  __raw: string
-
   name: string
   body: string
   // TODO: fix this
@@ -58,7 +55,7 @@ function VariableDeclarationCell(): VariableDeclarationCell {
     type: "variable",
     error: null,
     dependencies: [],
-    __raw: "",
+    content: "",
     name: "",
     body: "",
     dataType: "",
@@ -67,12 +64,10 @@ function VariableDeclarationCell(): VariableDeclarationCell {
 }
 
 export function addVariableDeclarationCell() {
-  notebook$.cells.push(VariableDeclarationCell())
+  addCell(VariableDeclarationCell())
 }
 
 export interface ReactiveCell extends BaseCell<"reactive"> {
-  __raw: string
-
   name: string
   body: string
   returnType: string
@@ -85,7 +80,7 @@ function ReactiveCell(): ReactiveCell {
     type: "reactive",
     error: null,
     dependencies: [],
-    __raw: "",
+    content: "",
     name: "",
     body: "",
     returnType: "",
@@ -94,7 +89,7 @@ function ReactiveCell(): ReactiveCell {
 }
 
 export function addReactiveCell() {
-  notebook$.cells.push(ReactiveCell())
+  addCell(ReactiveCell())
 }
 
 export type Cell = FunctionCell | VariableDeclarationCell | ReactiveCell
@@ -122,29 +117,20 @@ export function setFocusedCell(id: string | null) {
   notebook$.focusedCellId.set(id)
 }
 
-export function addCell(type: "code" | "markdown", belowId?: string) {
+export function addCell(cell: Cell, belowId?: string) {
   batch(() => {
-    const newCell: Cell = {
-      id: createId(),
-      type,
-      content: "",
-      output: {},
-      executionCount: null,
-      error: null,
-    }
-
     const cells = notebook$.cells.peek()
     const index = belowId ? cells.findIndex((c) => c.id === belowId) : -1
 
     if (index === -1) {
-      notebook$.cells.push(newCell)
+      notebook$.cells.push(cell)
     } else {
-      notebook$.cells.splice(index + 1, 0, newCell)
+      notebook$.cells.splice(index + 1, 0, cell)
     }
 
     // Set focus after a short delay to ensure the component is mounted
     setTimeout(() => {
-      notebook$.focusedCellId.set(newCell.id)
+      notebook$.focusedCellId.set(cell.id)
     }, 0)
   })
 }

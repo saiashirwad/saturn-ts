@@ -3,7 +3,12 @@ import * as React from "react"
 import { CommandPalette } from "../command/command-palette"
 import { useKeyboardNav } from "../keyboard/use-keyboard-nav"
 import { CodeCell } from "./code-cell"
-import { addCell, notebook$ } from "./notebook-store"
+import {
+  addFunctionCell,
+  addReactiveCell,
+  addVariableDeclarationCell,
+  notebook$,
+} from "./notebook-store"
 
 export function Notebook() {
   return (
@@ -22,14 +27,32 @@ export function Notebook() {
 function TopBar() {
   return (
     <div className="flex items-center justify-between px-2 py-1 border-b border-border">
-      <button
-        className="p-1 text-muted-foreground hover:text-foreground"
-        onClick={() => addCell("code")}
-        title="Add cell (⌘K)"
-        aria-label="Add new code cell"
-      >
-        +
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          className="p-1 text-muted-foreground hover:text-foreground"
+          onClick={() => addReactiveCell()}
+          title="Add cell (⌘K)"
+          aria-label="Add new code cell"
+        >
+          Reactive
+        </button>
+        <button
+          className="p-1 text-muted-foreground hover:text-foreground"
+          onClick={() => addVariableDeclarationCell()}
+          title="Add cell (⌘K)"
+          aria-label="Add new code cell"
+        >
+          Variable Declaration
+        </button>
+        <button
+          className="p-1 text-muted-foreground hover:text-foreground"
+          onClick={() => addFunctionCell()}
+          title="Add cell (⌘K)"
+          aria-label="Add new code cell"
+        >
+          Function
+        </button>
+      </div>
     </div>
   )
 }
