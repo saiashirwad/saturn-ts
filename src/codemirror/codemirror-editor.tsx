@@ -2,7 +2,6 @@ import { EditorView } from "@codemirror/view"
 import { langs, loadLanguage } from "@uiw/codemirror-extensions-langs"
 import { githubLight, tokyoNight } from "@uiw/codemirror-themes-all"
 import CodeMirror from "@uiw/react-codemirror"
-import { editor } from "monaco-editor"
 import { useEffect, useMemo, useRef } from "react"
 import { setFocusedCell } from "../notebook/notebook-store"
 import { useDarkMode } from "../utils/use-dark-mode"
@@ -22,7 +21,6 @@ export function CodemirrorEditor(props: {
   language: string
   value: string
   onChange: (value: string | undefined) => void
-  onMount?: (editor: editor.IStandaloneCodeEditor) => void
   isFocused?: boolean
 }) {
   const { theme } = useDarkMode()

@@ -3,12 +3,7 @@ import * as React from "react"
 import { CommandPalette } from "../command/command-palette"
 import { useKeyboardNav } from "../keyboard/use-keyboard-nav"
 import { CodeCell } from "./code-cell"
-import {
-  addFunctionCell,
-  addReactiveCell,
-  addVariableDeclarationCell,
-  notebook$,
-} from "./notebook-store"
+import { addCell, notebook$ } from "./notebook-store"
 
 export function Notebook() {
   return (
@@ -30,7 +25,7 @@ function TopBar() {
       <div className="flex items-center gap-3">
         <button
           className="p-1 text-muted-foreground hover:text-foreground"
-          onClick={() => addReactiveCell()}
+          onClick={() => addCell("reactive")}
           title="Add cell (⌘K)"
           aria-label="Add new code cell"
         >
@@ -38,19 +33,11 @@ function TopBar() {
         </button>
         <button
           className="p-1 text-muted-foreground hover:text-foreground"
-          onClick={() => addVariableDeclarationCell()}
+          onClick={() => addCell("non-reactive")}
           title="Add cell (⌘K)"
           aria-label="Add new code cell"
         >
-          Variable Declaration
-        </button>
-        <button
-          className="p-1 text-muted-foreground hover:text-foreground"
-          onClick={() => addFunctionCell()}
-          title="Add cell (⌘K)"
-          aria-label="Add new code cell"
-        >
-          Function
+          Non-Reactive Cell
         </button>
       </div>
     </div>

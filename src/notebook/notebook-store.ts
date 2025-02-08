@@ -11,16 +11,8 @@ interface BaseCell<T> {
   dependencies: string[]
 }
 
-type FunctionArg = {
-  name: string
-  type: string
-}
-
 export interface NonReactiveCodeCell extends BaseCell<"non-reactive"> {
   name: string
-  args: FunctionArg[]
-  body: string
-  returnType: string
 }
 
 function NonReactiveCodeCell(): NonReactiveCodeCell {
@@ -31,14 +23,7 @@ function NonReactiveCodeCell(): NonReactiveCodeCell {
     dependencies: [],
     content: "",
     name: "",
-    args: [],
-    body: "",
-    returnType: "",
   }
-}
-
-export function addNonReactiveCodeCell() {
-  addCell(NonReactiveCodeCell())
 }
 
 export interface ReactiveCodeCell extends BaseCell<"reactive"> {
@@ -60,10 +45,6 @@ function ReactiveCodeCell(): ReactiveCodeCell {
     returnType: "",
     cachedValue: null,
   }
-}
-
-export function addReactiveCodeCell() {
-  addCell(ReactiveCodeCell())
 }
 
 export type Cell = NonReactiveCodeCell | ReactiveCodeCell
@@ -91,7 +72,8 @@ export function setFocusedCell(id: string | null) {
   notebook$.focusedCellId.set(id)
 }
 
-export function addCell(cell: Cell, belowId?: string) {
+export function addCell(type: Cell["type"], belowId?: string) {
+  const cell = type === "reactive" ? ReactiveCodeCell() : NonReactiveCodeCell()
   batch(() => {
     const cells = notebook$.cells.peek()
     const index = belowId ? cells.findIndex((c) => c.id === belowId) : -1

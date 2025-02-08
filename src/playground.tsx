@@ -1,29 +1,30 @@
-import { JavaScriptExecutor } from "./runtime/js-executor"
+import { Matcher } from "./utils/matcher"
 
-const executor = new JavaScriptExecutor()
+type Shape =
+  | { type: "rectangle"; kind: "rectangle"; length: number; width: number }
+  | { type: "square"; kind: "square"; side: number }
+  | { type: "circle"; kind: "circle"; radius: number }
+
+function MatchShape(props: { shape: Shape }) {
+  return (
+    <div>
+      <Matcher
+        value={props.shape}
+        discriminator="kind"
+        square={({ side }) => <div>{JSON.stringify({ side }, null, 2)}</div>}
+        rectangle={({ length, width }) => (
+          <div>{JSON.stringify({ length, width }, null, 2)}</div>
+        )}
+        _={(props) => <pre>{JSON.stringify(props, null, 2)}</pre>}
+      />
+    </div>
+  )
+}
 
 export function Playground() {
   return (
     <div>
-      <button
-        onClick={async () => {
-          const result1 = await executor.execute(`
-const sum = (a, b) => a + b
-return sum(1, 2)
-`)
-          console.log(result1)
-
-          const result2 = await executor.execute(`
-const pikachu = await fetch("https://pokeapi.co/api/v2/pokemon/pikachu")
-const data = await pikachu.json()
-return data
-`)
-
-          console.log(result2)
-        }}
-      >
-        execute
-      </button>
+      <MatchShape shape={{ type: "circle", kind: "circle", radius: 2 }} />
     </div>
   )
 }

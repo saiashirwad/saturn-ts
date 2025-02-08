@@ -10,8 +10,8 @@ initializeTheme()
 
 function App() {
   useDarkMode()
-  return <Notebook />
-  //return <Playground />
+  //return <Notebook />
+  return <Playground />
 }
 
 createRoot(document.getElementById("root")!).render(
