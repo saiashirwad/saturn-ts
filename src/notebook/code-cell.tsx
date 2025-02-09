@@ -60,6 +60,14 @@ export const CodeCell = memo(({ cell, isFocused, ref }: CodeCellProps) => {
           onFocus={() => {
             setFocusedCell(cell.id)
           }}
+          onBlur={async () => {
+            if (cell.type === "reactive") {
+              await runCode(cell.content, {}, (result) => {
+                console.log(result)
+              })
+            }
+            console.log(cell.content)
+          }}
         />
 
         {cell.output && (

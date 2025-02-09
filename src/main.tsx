@@ -1,9 +1,9 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
+import "./index.css"
 import { initializeTheme } from "./lib/theme"
 import { Notebook } from "./notebook/notebook"
 import { useDarkMode } from "./utils/use-dark-mode"
-import "./index.css"
 
 initializeTheme()
 
