@@ -12,6 +12,7 @@ import {
   Cell as CellType,
   deleteCell,
   notebook$,
+  setFocusedCell,
   updateCell,
 } from "./notebook-store"
 
@@ -51,12 +52,13 @@ export const CodeCell = memo(({ cell, isFocused, ref }: CodeCellProps) => {
         aria-label="Code editor"
       >
         <CodemirrorEditor
-          id={cell.id}
           isFocused={isFocused}
-          language="typescript"
           value={cell.content}
           onChange={(value) => {
             updateCell(cell.id, { content: value ?? "" })
+          }}
+          onFocus={() => {
+            setFocusedCell(cell.id)
           }}
         />
 
