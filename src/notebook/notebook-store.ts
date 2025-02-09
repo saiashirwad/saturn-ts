@@ -13,6 +13,7 @@ interface BaseCell<T> {
 
 export interface NonReactiveCodeCell extends BaseCell<"non-reactive"> {
   name: string
+  output: string
 }
 
 function NonReactiveCodeCell(): NonReactiveCodeCell {
@@ -23,6 +24,7 @@ function NonReactiveCodeCell(): NonReactiveCodeCell {
     dependencies: [],
     content: "",
     name: "",
+    output: "",
   }
 }
 
@@ -31,6 +33,7 @@ export interface ReactiveCodeCell extends BaseCell<"reactive"> {
   body: string
   returnType: string
   cachedValue: any
+  output: string
 }
 
 function ReactiveCodeCell(): ReactiveCodeCell {
@@ -44,6 +47,7 @@ function ReactiveCodeCell(): ReactiveCodeCell {
     body: "",
     returnType: "",
     cachedValue: null,
+    output: "",
   }
 }
 
@@ -111,16 +115,11 @@ export function updateCellContent(id: string, content: string) {
   }
 }
 
-export function updateCellOutput(
-  id: string,
-  output: string,
-  executionCount: number,
-) {
+export function updateCellOutput(id: string, output: string) {
   const cells = notebook$.cells.peek()
   const cell = cells.findIndex((c) => c.id === id)
   if (cell !== -1) {
     notebook$.cells[cell].output.set(JSON.parse(output))
-    notebook$.cells[cell].executionCount.set(executionCount)
     notebook$.cells[cell].error.set(null)
   }
 }
@@ -158,7 +157,11 @@ export function moveCellDown(id: string) {
 export function updateCell(id: string, cell: Partial<Cell>) {
   const index = notebook$.cells.peek().findIndex((c) => c.id === id)
   if (index !== -1) {
-    notebook$.cells[index].set({ ...notebook$.cells[index].peek(), ...cell })
+    // TODO: clean this up
+    notebook$.cells[index].set({
+      ...notebook$.cells[index].peek(),
+      ...cell,
+    } as any)
   }
 }
 
