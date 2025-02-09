@@ -1,10 +1,6 @@
-import { ReactNode } from "react"
+import * as React from "react"
 
-type UnMatchedKeys<
-  Discriminator extends string,
-  T extends Matchable<Discriminator>,
-  R extends Matchable<Discriminator>,
-> = Exclude<T[Discriminator], R[Discriminator]>
+type Pretty<T> = { [k in keyof T]: T[k] } & {}
 
 type UnMatchedProps<
   Discriminator extends string,
@@ -14,19 +10,6 @@ type UnMatchedProps<
   T,
   { [key in Discriminator]: Exclude<T[Discriminator], R[Discriminator]> }
 >
-
-type lol = UnMatchedProps<
-  "type",
-  Shape,
-  | { kind: "rectangle"; type: "rectangle"; length: number; width: number }
-  | {
-      kind: "square"
-      type: "square"
-      side: number
-    }
->
-
-type Prettify<T> = { [k in keyof T]: T[k] } & {}
 
 type Matchable<Discriminator extends string> = {
   [key in Discriminator]: string
@@ -52,26 +35,32 @@ type InExhaustive<
     ) => Output
   }>,
 > = P & {
-  _: (props: UnMatchedProps<Discriminator, T, P>) => Output
+  _: (
+    props: UnMatchedProps<
+      Discriminator,
+      T,
+      { [K in keyof P]: Extract<T, { [key in Discriminator]: K }> }[keyof P]
+    >,
+  ) => Output
 }
 
 type MatcherProps<
   Discriminator extends string,
   T extends Matchable<Discriminator>,
   _ = { value: T; discriminator: Discriminator },
-> = Prettify<
-  | (_ & Exhaustive<Discriminator, T, ReactNode>)
-  | (_ & InExhaustive<Discriminator, T, ReactNode>)
+> = Pretty<
+  | (_ & Exhaustive<Discriminator, T, React.ReactNode>)
+  | (_ & InExhaustive<Discriminator, T, React.ReactNode>)
 >
 
 export function Matcher<
   Discriminator extends string,
   T extends Matchable<Discriminator>,
->({ value, ...matchers }: MatcherProps<Discriminator, T>): ReactNode {
+>({ value, ...matchers }: MatcherProps<Discriminator, T>): React.ReactNode {
   // @ts-ignore
   const handler = matchers[value.type as keyof typeof matchers] ?? matchers["_"]
   if (!handler) return null
-  return (handler as (value: T) => ReactNode)(value)
+  return (handler as (value: T) => React.ReactNode)(value)
 }
 
 type Shape =

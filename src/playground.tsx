@@ -1,30 +1,17 @@
 import { Matcher } from "./utils/matcher"
+import { match, P } from "ts-pattern"
 
 type Shape =
   | { type: "rectangle"; kind: "rectangle"; length: number; width: number }
   | { type: "square"; kind: "square"; side: number }
   | { type: "circle"; kind: "circle"; radius: number }
 
-function MatchShape(props: { shape: Shape }) {
-  return (
-    <div>
-      <Matcher
-        value={props.shape}
-        discriminator="kind"
-        square={({ side }) => <div>{JSON.stringify({ side }, null, 2)}</div>}
-        rectangle={({ length, width }) => (
-          <div>{JSON.stringify({ length, width }, null, 2)}</div>
-        )}
-        _={(props) => <pre>{JSON.stringify(props, null, 2)}</pre>}
-      />
-    </div>
-  )
+function lol(shape: Shape) {
+  const result = match(shape)
+    .with({ length: P.number }, (s) => "hi")
+    .otherwise((s) => {})
 }
 
 export function Playground() {
-  return (
-    <div>
-      <MatchShape shape={{ type: "circle", kind: "circle", radius: 2 }} />
-    </div>
-  )
+  return <div></div>
 }
