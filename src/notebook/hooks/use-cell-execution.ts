@@ -70,7 +70,7 @@ export function useCellExecution(cellId: string) {
           globals.map(({ name, value }) => [name, value]),
         );
 
-        // Find references before execution, now passing cellId
+        // Find references before execution
         const references = findReferences(code, globals, cellId);
 
         // Execute with globals injected into scope
@@ -78,20 +78,20 @@ export function useCellExecution(cellId: string) {
 
         const newHash = hashCode(code);
 
-        if (result.result && typeof result.result === "object") {
-          const exports = Object.entries(result.result).map(
-            ([name, value]) => ({
-              name,
-              value,
-              type: typeof value,
-            }),
-          );
+        // Only try to extract exports if result is an object
+        const exports =
+          result.result && typeof result.result === "object"
+            ? Object.entries(result.result).map(([name, value]) => ({
+                name,
+                value,
+                type: typeof value,
+              }))
+            : [];
 
-          updateCellAnalysis(cellId, {
-            exports,
-            references,
-          });
-        }
+        updateCellAnalysis(cellId, {
+          exports,
+          references,
+        });
 
         updateCell(cellId, {
           content: code,

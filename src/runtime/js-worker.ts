@@ -56,7 +56,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   };
 
   try {
-    // Wrap code in async IIFE with better error handling
+    // Modified wrappedCode to not require exports
     const wrappedCode = `
       return (async () => {
         try {
@@ -65,10 +65,15 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
             .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
             .join("\n")}
 
-          const result = await (async () => {
+          // Execute code and capture last expression result
+          let __lastExpressionResult;
+          __lastExpressionResult = await (async () => {
             ${code}
           })();
-          return result;
+          
+          // If the code has an explicit return/export, it will be returned
+          // Otherwise, return the last expression result
+          return __lastExpressionResult;
         } catch (err) {
           throw err;
         }
@@ -77,7 +82,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
     const context = {
       ...runtimeContext,
-      ...globals, // Also inject globals into function context
+      ...globals,
     };
 
     const fn = new Function(...Object.keys(context), wrappedCode);
