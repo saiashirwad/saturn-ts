@@ -16,15 +16,12 @@ export function useCellExecution(cellId: string) {
         const globals = notebook$.globals.get();
         const newHash = hashCode(code);
 
-        console.log(code);
-        const prettyCode = await formatCode(code, "typescript");
-
         const result = await runCode(code, globals, (message) => {
           addCellLog(cellId, message);
         });
 
         updateCell(cellId, {
-          content: prettyCode,
+          content: code,
           hash: newHash,
           output: {
             logs: result.logs,
