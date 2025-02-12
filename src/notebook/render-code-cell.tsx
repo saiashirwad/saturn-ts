@@ -27,23 +27,6 @@ export const RenderCodeCell = memo(
           const executor = new JavaScriptExecutor();
           const result = await executor.execute(code);
 
-          // Only update output if there's actual output (not just exports)
-          if (
-            result.result !== undefined &&
-            result.result !== null &&
-            (!result.exports || result.exports.length === 0)
-          ) {
-            updateCell(cell.id, {
-              output: result.result,
-              error: null,
-            });
-          } else {
-            updateCell(cell.id, {
-              output: null,
-              error: null,
-            });
-          }
-
           // Update cell analysis with exports
           if (result.result && typeof result.result === "object") {
             updateCellAnalysis(cell.id, {
@@ -54,15 +37,20 @@ export const RenderCodeCell = memo(
               })),
               references: [], // TODO: Parse code to find references
             });
-          } else {
-            updateCellAnalysis(cell.id, {
-              exports: [],
-              references: [],
-            });
           }
+
+          // Update cell output with both logs and result
+          updateCell(cell.id, {
+            output: {
+              logs: result.logs,
+              result: result.result,
+            },
+            error: null,
+          });
         } catch (error) {
           updateCell(cell.id, {
             error: error instanceof Error ? error.message : String(error),
+            output: null,
           });
           updateCellAnalysis(cell.id, {
             exports: [],
@@ -99,7 +87,7 @@ export const RenderCodeCell = memo(
               await run(cell.content);
             }}
             onKeyDown={(event) => {
-              if (event.key === "Enter" && event.ctrlKey) {
+              if (event.key === "Enter" && event.shiftKey) {
                 event.preventDefault();
                 run(cell.content);
               }
@@ -107,12 +95,23 @@ export const RenderCodeCell = memo(
           />
 
           {cell.output && (
-            <div
-              className="flex-1 p-2 font-mono text-sm bg-background text-foreground border-t border-gray-200 dark:border-gray-700"
-              role="region"
-              aria-label="Cell output"
-            >
-              <pre>{JSON.stringify(cell.output, null, 2)}</pre>
+            <div className="flex flex-col">
+              {cell.output.logs?.length > 0 && (
+                <div className="flex-1 p-2 font-mono text-sm bg-background text-foreground border-t border-border">
+                  {cell.output.logs.map((log: string, i: number) => (
+                    <div key={i} className="whitespace-pre-wrap">
+                      {log}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {cell.output.result !== undefined &&
+                cell.output.result !== null && (
+                  <div className="flex-1 p-2 font-mono text-sm bg-background text-foreground border-t border-border">
+                    <pre>{JSON.stringify(cell.output.result, null, 2)}</pre>
+                  </div>
+                )}
             </div>
           )}
 

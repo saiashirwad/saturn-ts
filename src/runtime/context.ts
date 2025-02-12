@@ -1,51 +1,26 @@
 export function createRuntimeContext(context: Record<string, any>) {
   return {
-    console: {
-      log: (...args: any[]) => {
-        const formatted = args
-          .map((arg) =>
-            typeof arg === "object"
-              ? JSON.stringify(arg, null, 2)
-              : String(arg),
-          )
-          .join(" ");
-        (self as any).logs.push(formatted);
-      },
-      error: (...args: any[]) => {
-        const formatted = args
-          .map((arg) =>
-            typeof arg === "object"
-              ? JSON.stringify(arg, null, 2)
-              : String(arg),
-          )
-          .join(" ");
-        (self as any).logs.push(`Error: ${formatted}`);
-      },
-    },
-    fetch: async (url: string) => {
-      const response = await self.fetch(url);
-      const text = await response.text();
-      try {
-        return {
-          ok: response.ok,
-          status: response.status,
-          statusText: response.statusText,
-          json: () => JSON.parse(text),
-          text: () => text,
-        };
-      } catch (e) {
-        return {
-          ok: response.ok,
-          status: response.status,
-          statusText: response.statusText,
-          text: () => text,
-        };
-      }
-    },
+    console,
+    setTimeout,
+    clearTimeout,
+    setInterval,
+    clearInterval,
     Math,
+    Date,
     JSON,
-    context,
+    String,
+    Number,
+    Boolean,
+    Array,
+    Object,
+    Error,
+    Promise,
+    RegExp,
+    // Add any other globals you want to expose
+    ...context,
   };
 }
 
-export const runtimeContext = createRuntimeContext({});
+export const runtimeContext = createRuntimeContext({
+  // Add any custom context here
+});

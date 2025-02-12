@@ -7,58 +7,71 @@ export interface WorkerMessage {
 
 export interface WorkerResponse {
   id: string;
-  success: boolean;
+  type: "log" | "result" | "error";
+  success?: boolean;
   result?: any;
   error?: string;
-  logs: string[];
-  exports?: string[]; // Track exported variable names
+  log?: string;
+  exports?: string[];
+  logs?: string[];
 }
 
 export type ContextType = typeof runtimeContext;
 
+// Initialize logs array
+(self as any).logs = [];
+
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   const { id, code } = e.data;
-  (self as any).logs = [];
+  (self as any).logs = []; // Reset logs for new execution
+
+  // Override console.log to stream logs
+  const originalLog = console.log;
+  console.log = (...args: any[]) => {
+    const log = args
+      .map((arg) =>
+        typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
+      )
+      .join(" ");
+
+    self.postMessage({
+      id,
+      type: "log",
+      log,
+    } as WorkerResponse);
+
+    originalLog.apply(console, args);
+  };
 
   try {
-    // Wrap code in async function and ensure it returns an object
-    const fn = new Function(
-      ...Object.keys(runtimeContext),
-      `return (async () => {
-        const result = await (async () => {
-          ${code}
-        })();
-        
-        // If result is undefined or null, return empty object
-        if (result == null) return {};
-        
-        // If result isn't an object, wrap it in default export
-        if (typeof result !== 'object') {
-          return { default: result };
-        }
-        
-        return result;
-      })()`,
-    );
+    // Wrap code in async IIFE and handle exports
+    const wrappedCode = `
+      let exports = {};
+      ${code};
+      return exports;
+    `;
+
+    const fn = new Function(...Object.keys(runtimeContext), wrappedCode);
 
     const result = await fn(...Object.values(runtimeContext));
 
-    const response: WorkerResponse = {
+    self.postMessage({
       id,
+      type: "result",
       success: true,
       result,
-      logs: (self as any).logs,
       exports: Object.keys(result || {}),
-    };
-    self.postMessage(response);
+      logs: (self as any).logs,
+    } as WorkerResponse);
   } catch (error) {
-    const response: WorkerResponse = {
+    self.postMessage({
       id,
+      type: "error",
       success: false,
       error: error instanceof Error ? error.message : String(error),
       logs: (self as any).logs,
-      exports: [],
-    };
-    self.postMessage(response);
+    } as WorkerResponse);
+  } finally {
+    console.log = originalLog;
   }
 };

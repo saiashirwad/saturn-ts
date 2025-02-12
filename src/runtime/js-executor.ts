@@ -19,6 +19,7 @@ export class JavaScriptExecutor {
       resolve: (value: ExecutionResult) => void;
       reject: (reason: ExecutionError) => void;
       timeout: number;
+      logs: string[];
     }
   >();
 
@@ -27,47 +28,61 @@ export class JavaScriptExecutor {
   }
 
   private initializeWorker() {
-    try {
-      this.worker = new Worker(new URL("./js-worker.ts", import.meta.url), {
-        type: "module",
-      });
-      this.worker.onmessage = this.handleWorkerMessage.bind(this);
-      this.worker.onerror = this.handleWorkerError.bind(this);
-    } catch (error) {
-      console.error("Failed to initialize worker:", error);
-      this.worker = null;
+    if (this.worker) {
+      this.worker.terminate();
     }
+
+    this.worker = new Worker(new URL("./js-worker.ts", import.meta.url), {
+      type: "module",
+    });
+
+    this.worker.onmessage = this.handleWorkerMessage.bind(this);
+    this.worker.onerror = this.handleWorkerError.bind(this);
   }
 
   private handleWorkerMessage(event: MessageEvent<WorkerResponse>) {
-    const { id, success, result, error, logs, exports } = event.data;
+    const { id, type, success, result, error, log, exports } = event.data;
     const execution = this.executionMap.get(id);
 
-    if (execution) {
-      clearTimeout(execution.timeout);
-      this.executionMap.delete(id);
+    if (!execution) return;
 
-      if (success) {
-        execution.resolve({ result, logs, exports });
-      } else {
+    switch (type) {
+      case "log":
+        if (log) {
+          execution.logs.push(log);
+        }
+        break;
+
+      case "result":
+        clearTimeout(execution.timeout);
+        this.executionMap.delete(id);
+        execution.resolve({
+          result,
+          logs: execution.logs,
+          exports,
+        });
+        break;
+
+      case "error":
+        clearTimeout(execution.timeout);
+        this.executionMap.delete(id);
         execution.reject({
           error: error ?? "Unknown error",
-          logs,
+          logs: execution.logs,
         });
-      }
+        break;
     }
   }
 
   private handleWorkerError(error: ErrorEvent) {
     console.error("Worker error:", error);
+    // Reinitialize worker on error
+    this.initializeWorker();
   }
 
-  execute(code: string, timeoutMs = 50000): Promise<ExecutionResult> {
+  async execute(code: string, timeoutMs = 5000): Promise<ExecutionResult> {
     if (!this.worker) {
-      return Promise.reject({
-        error: "Worker not initialized",
-        logs: [],
-      });
+      this.initializeWorker();
     }
 
     return new Promise((resolve, reject) => {
@@ -75,18 +90,19 @@ export class JavaScriptExecutor {
 
       const timeout = window.setTimeout(() => {
         this.executionMap.delete(id);
-        this.worker?.terminate();
-        this.initializeWorker();
+        this.initializeWorker(); // Recreate worker on timeout
         reject({ error: "Execution timed out", logs: [] });
       }, timeoutMs);
 
-      this.executionMap.set(id, { resolve, reject, timeout });
-      this.worker?.postMessage({ id, code });
-    });
-  }
+      this.executionMap.set(id, {
+        resolve,
+        reject,
+        timeout,
+        logs: [],
+      });
 
-  isAlive(): boolean {
-    return this.worker !== null;
+      this.worker!.postMessage({ id, code });
+    });
   }
 
   terminate() {
