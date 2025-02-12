@@ -1,4 +1,4 @@
-import { For, use$ } from "@legendapp/state/react";
+import { For, observer, use$ } from "@legendapp/state/react";
 import { Search, Trash2, Variable } from "lucide-react";
 import * as React from "react";
 import {
@@ -17,7 +17,7 @@ import {
 } from "../notebook/notebook-store";
 import { command$, commandPalette$ } from "./command-store";
 
-export function CommandPalette() {
+export const CommandPalette = observer(() => {
   const isOpen = use$(commandPalette$.isOpen);
   const focusedCell = use$(notebook$.focusedCellId);
 
@@ -127,4 +127,4 @@ export function CommandPalette() {
       </CommandList>
     </CommandDialog>
   ) : null;
-}
+});

@@ -1,5 +1,4 @@
-import { For, observer } from "@legendapp/state/react";
-import { use$ } from "@legendapp/state/react";
+import { For, observer, use$ } from "@legendapp/state/react";
 import { Variable } from "lucide-react";
 import * as React from "react";
 import { CommandPalette } from "../command/command-palette";
@@ -55,15 +54,6 @@ const TopBar = React.memo(function TopBar() {
 });
 
 const Editor = observer(function Editor() {
-  const focusedCellId = use$(notebook$.focusedCellId);
-  const cellRefs = React.useRef<Map<string, HTMLDivElement>>(new Map());
-
-  const setRef = React.useCallback((el: HTMLDivElement | null, id: string) => {
-    if (el) {
-      cellRefs.current.set(id, el);
-    }
-  }, []);
-
   useKeyboardNav();
 
   return (
@@ -75,18 +65,11 @@ const Editor = observer(function Editor() {
       <For each={notebook$.cells}>
         {(cell$) => {
           const cellId = cell$.id.get();
-          const setRefForCell = React.useCallback(
-            (el: HTMLDivElement | null) => {
-              setRef(el, cellId);
-            },
-            [cellId],
-          );
 
           return (
             <div key={cellId} role="listitem">
               {cell$.type.get() === "code" ? (
                 <RenderCodeCell
-                  ref={setRefForCell}
                   cell={cell$.get() as CodeCell}
                   isFocused={notebook$.focusedCellId.get() === cellId}
                 />
