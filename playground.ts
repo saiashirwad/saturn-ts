@@ -1,25 +1,20 @@
 import * as babel from "@babel/core";
-import {
-  Dependencies,
-  trackDependencies,
-} from "./src/runtime/dependency-tracker";
+import { trackDependencies } from "./src/runtime/dependency-tracker";
 
 const code = `
-  const count = $(0);
-  const doubled = $(() => count() * 2);
+  const doubled = count * 2;
+  const something = rip * 2
 
   function display() {
-    console.log(doubled());
+    console.log(doubled);
   }
-  display();
 `;
 
-const reactiveVariables = new Set<string>();
-const dependencies: Dependencies = {};
+const reactiveVariables = new Set<string>(["count", "rip"]);
+const dependencies = new Set<string>();
 
 const transformedCode = babel.transformSync(code, {
   plugins: [trackDependencies(reactiveVariables, dependencies)],
 });
 
-console.log(dependencies);
 console.log(reactiveVariables);
