@@ -10,6 +10,7 @@ import {
 import { useKeyboardNav } from "../keyboard/use-keyboard-nav";
 import { RenderCodeCell } from "./render-code-cell";
 import { notebook$ } from "./notebook-store";
+import { useDarkMode } from "../utils/use-dark-mode";
 
 export function Notebook() {
   return (
@@ -36,8 +37,17 @@ export function Notebook() {
 }
 
 function TopBar() {
+  const { theme, toggleTheme } = useDarkMode();
+
   return (
-    <div className="flex items-center justify-between px-2 py-1 border-b border-border"></div>
+    <div className="flex items-center justify-between px-2 py-1 border-b border-border">
+      <button
+        onClick={toggleTheme}
+        className="px-3 py-1 rounded bg-secondary hover:bg-secondary/80"
+      >
+        {theme === "dark" ? "🌞" : "🌙"}
+      </button>
+    </div>
   );
 }
 

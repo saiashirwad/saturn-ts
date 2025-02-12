@@ -1,6 +1,6 @@
 import { EditorView } from "@codemirror/view";
 import { langs, loadLanguage } from "@uiw/codemirror-extensions-langs";
-import { githubLight, tokyoNight } from "@uiw/codemirror-themes-all";
+import { githubDark, githubLight } from "@uiw/codemirror-themes-all";
 import CodeMirror, { ReactCodeMirrorProps } from "@uiw/react-codemirror";
 import { useEffect, useMemo, useRef } from "react";
 import { useDarkMode } from "../utils/use-dark-mode";
@@ -47,7 +47,7 @@ export function CodemirrorEditor({
           indentOnInput: false,
           highlightActiveLine: true,
         }}
-        theme={theme === "dark" ? tokyoNight : githubLight}
+        theme={theme === "dark" ? githubDark : githubLight}
         extensions={[langs.tsx()]}
         onCreateEditor={(view) => {
           editorRef.current = view;
