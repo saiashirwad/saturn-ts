@@ -18,7 +18,7 @@ const Notebook = React.memo(function Notebook() {
       aria-label="Notebook editor"
     >
       <CommandPalette />
-      <TopBar />
+      {/* <TopBar /> */}
       <div className="flex-1">
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={75} minSize={30}>
@@ -103,12 +103,9 @@ const GlobalsPanel = observer(() => {
 
   return (
     <div className="h-full flex flex-col border-l border-border">
-      <div className="p-4 border-b border-border">
-        <h2 className="text-sm font-semibold">Global Variables</h2>
-      </div>
       <div className="flex-1 overflow-auto p-2">
         {globals.length === 0 ? (
-          <div className="text-sm text-muted-foreground p-2">
+          <div className="text-xs text-muted-foreground p-2">
             No global variables defined
           </div>
         ) : (
@@ -118,15 +115,17 @@ const GlobalsPanel = observer(() => {
                 key={`${sourceCell}-${name}`}
                 className="flex items-center gap-2 p-2 rounded-md hover:bg-muted"
               >
-                <Variable className="w-4 h-4 text-blue-500" />
-                <span className="font-mono text-sm">{name}</span>
+                <Variable className="w-3 h-3 text-blue-500" />
+                <span className="font-mono text-xs">{name}</span>
                 <div className="ml-auto flex items-center gap-2">
                   {(globalRefs.get(name) ?? 0) > 0 && (
-                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
                       {globalRefs.get(name)} refs
                     </span>
                   )}
-                  <span className="text-xs text-muted-foreground">{type}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {type}
+                  </span>
                 </div>
               </div>
             ))}
