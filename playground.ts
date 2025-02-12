@@ -7,14 +7,16 @@ const code = `
 
   function display() {
     console.log(doubled);
+    console.log(something);
+    console.log(count);
   }
 `;
 
 const reactiveVariables = new Set<string>(["count", "rip"]);
-const dependencies = new Set<string>();
+const dependencies = new Map<string, number>();
 
-const transformedCode = babel.transformSync(code, {
+const transformedCode = await babel.transformAsync(code, {
   plugins: [trackDependencies(reactiveVariables, dependencies)],
 });
 
-console.log(reactiveVariables);
+console.log(dependencies);

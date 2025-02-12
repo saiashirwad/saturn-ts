@@ -8,7 +8,7 @@ interface PluginMetadata {
 
 export function trackDependencies(
   globalReactiveVariables: Set<string>,
-  dependencies: Set<string>,
+  dependencies: Map<string, number>,
 ) {
   return (): PluginObj => {
     return {
@@ -22,7 +22,9 @@ export function trackDependencies(
                   // Don't track the variable if it's being declared
                   const binding = path.scope.getBinding(path.node.name);
                   if (!binding || binding.scope.block !== path.scope.block) {
-                    dependencies.add(path.node.name);
+                    const currentDependencies =
+                      dependencies.get(path.node.name) || 0;
+                    dependencies.set(path.node.name, currentDependencies + 1);
                   }
                 }
               },
