@@ -182,3 +182,48 @@ runner.execute(code, { React }).then(result => {
 }).catch(error => {
   console.error('Execution failed:', error); 
 }); 
+
+
+This is how you use for loops with legend store:
+import { useEffect, useRef, useState } from "react"
+import { For, observer, useObservable } from "@legendapp/state/react"
+
+let total = 0
+const TodosExample = () => {
+  const renderCount = ++useRef(0).current
+  const todos$ = useObservable([])
+
+  const onClickAdd = () => (
+    todos$.push({ id: ++total, text: total + '. Item', renders: 1 })
+  )
+  const onClickUpdate = () => {
+    todos$[todos$.length - 1].text.set((t) => t + '!')
+  }
+
+  return (
+    <Box>
+      <Button onClick={onClickAdd}>
+        Add
+      </Button>
+      <Button onClick={onClickUpdate}>
+        Update Latest
+      </Button>
+      <div>Renders: {renderCount}</div>
+      <div className="messages">
+        <div className="hint">(text) - (renders)</div>
+        <For each={todos$}>
+          {(item) => {
+            useEffect(() => {
+              item.renders.set((r) => r + 1)
+            })
+            return (
+              <div>
+                {item.text.get()} - {item.renders.peek()}
+              </div>
+            )
+          }}
+        </For>
+      </div>
+    </Box>
+  )
+}

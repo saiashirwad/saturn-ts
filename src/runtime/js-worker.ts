@@ -3,6 +3,7 @@ import { runtimeContext } from "./context";
 export interface WorkerMessage {
   id: string;
   code: string;
+  globals: Record<string, any>;
 }
 
 export interface WorkerResponse {
@@ -21,7 +22,7 @@ export type ContextType = typeof runtimeContext;
 (self as any).logs = [];
 
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
-  const { id, code } = e.data;
+  const { id, code, globals } = e.data;
   (self as any).logs = []; // Reset logs for new execution
 
   // Override console.log to stream logs
@@ -59,6 +60,11 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     const wrappedCode = `
       return (async () => {
         try {
+          // Inject globals into scope
+          ${Object.entries(globals)
+            .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
+            .join("\n")}
+
           const result = await (async () => {
             ${code}
           })();
@@ -69,8 +75,13 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
       })();
     `;
 
-    const fn = new Function(...Object.keys(runtimeContext), wrappedCode);
-    const result = await fn(...Object.values(runtimeContext));
+    const context = {
+      ...runtimeContext,
+      ...globals, // Also inject globals into function context
+    };
+
+    const fn = new Function(...Object.keys(context), wrappedCode);
+    const result = await fn(...Object.values(context));
 
     self.postMessage({
       id,

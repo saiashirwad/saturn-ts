@@ -1,3 +1,4 @@
+import { For } from "@legendapp/state/react";
 import { use$ } from "@legendapp/state/react";
 import { Variable } from "lucide-react";
 import * as React from "react";
@@ -8,11 +9,11 @@ import {
   ResizablePanelGroup,
 } from "../components/ui/resizable";
 import { useKeyboardNav } from "../keyboard/use-keyboard-nav";
-import { RenderCodeCell } from "./render-code-cell";
-import { notebook$ } from "./notebook-store";
 import { useDarkMode } from "../utils/use-dark-mode";
+import { CodeCell, notebook$ } from "./notebook-store";
+import { RenderCodeCell } from "./render-code-cell";
 
-export function Notebook() {
+const Notebook = React.memo(function Notebook() {
   return (
     <div
       className="h-screen flex flex-col bg-background text-foreground"
@@ -34,9 +35,11 @@ export function Notebook() {
       </div>
     </div>
   );
-}
+});
 
-function TopBar() {
+export { Notebook };
+
+const TopBar = React.memo(function TopBar() {
   const { theme, toggleTheme } = useDarkMode();
 
   return (
@@ -49,12 +52,17 @@ function TopBar() {
       </button>
     </div>
   );
-}
+});
 
-function Editor() {
-  const cells = use$(notebook$.cells);
+const Editor = React.memo(function Editor() {
   const focusedCellId = use$(notebook$.focusedCellId);
   const cellRefs = React.useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const setRef = React.useCallback((el: HTMLDivElement | null, id: string) => {
+    if (el) {
+      cellRefs.current.set(id, el);
+    }
+  }, []);
 
   useKeyboardNav();
 
@@ -64,27 +72,52 @@ function Editor() {
       role="list"
       aria-label="Notebook cells"
     >
-      {cells.map((cell, index) => (
-        <div key={cell.id} role="listitem">
-          {cell.type === "code" ? (
-            <RenderCodeCell
-              ref={(el) => {
-                if (el) {
-                  cellRefs.current.set(cell.id, el);
-                }
-              }}
-              cell={cell}
-              isFocused={focusedCellId === cell.id}
-            />
-          ) : null}
-        </div>
-      ))}
+      <For each={notebook$.cells}>
+        {(cell$) => {
+          const cellId = cell$.id.get();
+          const setRefForCell = React.useCallback(
+            (el: HTMLDivElement | null) => {
+              setRef(el, cellId);
+            },
+            [cellId],
+          );
+
+          return (
+            <div key={cellId} role="listitem">
+              {cell$.type.get() === "code" ? (
+                <RenderCodeCell
+                  ref={setRefForCell}
+                  cell={cell$.get() as CodeCell}
+                  isFocused={notebook$.focusedCellId.get() === cellId}
+                />
+              ) : null}
+            </div>
+          );
+        }}
+      </For>
     </div>
   );
-}
+});
 
 function GlobalsPanel() {
   const globals = use$(notebook$.globals);
+  const cells = use$(notebook$.cells);
+
+  // Calculate total references for each global
+  const globalRefs = React.useMemo(() => {
+    const refs = new Map<string, number>();
+
+    cells.forEach((cell) => {
+      cell?.analysis?.references?.forEach((ref) => {
+        if (ref?.name) {
+          const current = refs.get(ref.name) || 0;
+          refs.set(ref.name, current + (ref.count || 0));
+        }
+      });
+    });
+
+    return refs;
+  }, [cells]);
 
   return (
     <div className="h-full flex flex-col border-l border-border">
@@ -105,9 +138,14 @@ function GlobalsPanel() {
               >
                 <Variable className="w-4 h-4 text-blue-500" />
                 <span className="font-mono text-sm">{name}</span>
-                <span className="text-xs text-muted-foreground ml-auto">
-                  {type}
-                </span>
+                <div className="ml-auto flex items-center gap-2">
+                  {(globalRefs.get(name) ?? 0) > 0 && (
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
+                      {globalRefs.get(name)} refs
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground">{type}</span>
+                </div>
               </div>
             ))}
           </div>

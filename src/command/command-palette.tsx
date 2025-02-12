@@ -1,5 +1,5 @@
-import { use$ } from "@legendapp/state/react";
-import { Search, Variable, Trash2 } from "lucide-react";
+import { For, use$ } from "@legendapp/state/react";
+import { Search, Trash2, Variable } from "lucide-react";
 import * as React from "react";
 import {
   CommandDialog,
@@ -11,25 +11,15 @@ import {
 } from "../components/ui/command";
 import {
   addCell,
+  deleteCell,
   notebook$,
   setFocusedCell,
-  deleteCell,
 } from "../notebook/notebook-store";
 import { command$, commandPalette$ } from "./command-store";
 
 export function CommandPalette() {
   const isOpen = use$(commandPalette$.isOpen);
-  const cells = use$(notebook$.cells);
-  const globalVariables = use$(command$.commands);
   const focusedCell = use$(notebook$.focusedCellId);
-
-  const globals = React.useMemo(() => {
-    return Object.fromEntries(
-      globalVariables
-        .filter((cmd) => cmd.category === "global")
-        .map((cmd) => [cmd.name, cmd.handler]),
-    );
-  }, [globalVariables]);
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -88,42 +78,51 @@ export function CommandPalette() {
         </CommandGroup>
 
         <CommandGroup heading="Cells">
-          {cells.map((cell, index) => (
-            <CommandItem
-              key={cell.id}
-              onSelect={() => {
-                setFocusedCell(cell.id);
-                commandPalette$.isOpen.set(false);
-              }}
-              className="flex justify-between items-center"
-            >
-              <div className="flex items-center">
-                <Search className="w-4 h-4 mr-2" />
-                <span>Focus Cell {index + 1}</span>
-              </div>
-              <span className="text-xs opacity-75 font-mono">{cell.type}</span>
-            </CommandItem>
-          ))}
+          <For each={notebook$.cells}>
+            {(cell$, index) => {
+              const cell = cell$.get();
+              return (
+                <CommandItem
+                  key={cell.id}
+                  onSelect={() => {
+                    setFocusedCell(cell.id);
+                    commandPalette$.isOpen.set(false);
+                  }}
+                  className="flex justify-between items-center"
+                >
+                  <div className="flex items-center">
+                    <Search className="w-4 h-4 mr-2" />
+                    <span>Focus Cell {index}</span>
+                  </div>
+                  <span className="text-xs opacity-75 font-mono">
+                    {cell.type}
+                  </span>
+                </CommandItem>
+              );
+            }}
+          </For>
         </CommandGroup>
 
         <CommandGroup heading="Global Variables">
-          {Object.entries(globals).map(([name, _]) => (
-            <CommandItem
-              key={name}
-              onSelect={() => {
-                commandPalette$.isOpen.set(false);
-              }}
-              className="flex justify-between items-center"
-            >
-              <div className="flex items-center">
-                <Variable className="w-4 h-4 mr-2 text-blue-500" />
-                <span className="font-mono">{name}</span>
-              </div>
-              <span className="text-xs opacity-75 text-blue-500 font-mono">
-                global
-              </span>
-            </CommandItem>
-          ))}
+          <For each={command$.globalVariables}>
+            {(cmd) => (
+              <CommandItem
+                key={cmd.name.get()}
+                onSelect={() => {
+                  commandPalette$.isOpen.set(false);
+                }}
+                className="flex justify-between items-center"
+              >
+                <div className="flex items-center">
+                  <Variable className="w-4 h-4 mr-2 text-blue-500" />
+                  <span className="font-mono">{cmd.name.get()}</span>
+                </div>
+                <span className="text-xs opacity-75 text-blue-500 font-mono">
+                  global
+                </span>
+              </CommandItem>
+            )}
+          </For>
         </CommandGroup>
       </CommandList>
     </CommandDialog>

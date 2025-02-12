@@ -25,7 +25,11 @@ interface BaseCell {
       type: string;
       value: any;
     }>;
-    references: string[]; // All external values this cell references
+    references: Array<{
+      name: string;
+      count: number;
+      sourceCell: string;
+    }>;
   };
   showLogs: boolean;
   showOutput: boolean;
@@ -224,7 +228,8 @@ export function updateCellAnalysis(id: string, analysis: BaseCell["analysis"]) {
 }
 
 export function toggleCellLogs(id: string) {
-  const index = notebook$.cells.peek().findIndex((c) => c.id === id);
+  const cells = notebook$.cells.peek();
+  const index = cells.findIndex((c) => c.id === id);
   if (index !== -1) {
     const current = notebook$.cells[index].showLogs.peek();
     notebook$.cells[index].showLogs.set(!current);
@@ -232,7 +237,8 @@ export function toggleCellLogs(id: string) {
 }
 
 export function toggleCellOutput(id: string) {
-  const index = notebook$.cells.peek().findIndex((c) => c.id === id);
+  const cells = notebook$.cells.peek();
+  const index = cells.findIndex((c) => c.id === id);
   if (index !== -1) {
     const current = notebook$.cells[index].showOutput.peek();
     notebook$.cells[index].showOutput.set(!current);

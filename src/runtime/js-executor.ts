@@ -82,7 +82,11 @@ export class JavaScriptExecutor {
     this.initializeWorker();
   }
 
-  async execute(code: string, timeoutMs = 5000): Promise<ExecutionResult> {
+  async execute(
+    code: string,
+    globals: Record<string, any> = {},
+    timeoutMs = 5000,
+  ): Promise<ExecutionResult> {
     if (!this.worker) {
       this.initializeWorker();
     }
@@ -106,7 +110,7 @@ export class JavaScriptExecutor {
         logs: [],
       });
 
-      this.worker!.postMessage({ id, code });
+      this.worker!.postMessage({ id, code, globals });
     });
   }
 

@@ -11,6 +11,7 @@ import {
   toggleCellOutput,
   updateCell,
 } from "./notebook-store";
+import { observer } from "@legendapp/state/react";
 
 interface CodeCellProps {
   cell: CodeCell;
@@ -18,12 +19,33 @@ interface CodeCellProps {
   ref: React.Ref<HTMLDivElement>;
 }
 
-export const RenderCodeCell = memo(
+export const RenderCodeCell = observer(
   ({ cell, isFocused, ref }: CodeCellProps) => {
     if (cell.type !== "code") return null;
 
     const containerRef = useRef<HTMLDivElement>(null);
     const run = useCellExecution(cell.id);
+
+    const handleChange = React.useCallback(
+      (value: string | undefined) => {
+        updateCell(cell.id, { content: value ?? "" });
+      },
+      [cell.id],
+    );
+
+    const handleFocus = React.useCallback(() => {
+      setFocusedCell(cell.id);
+    }, [cell.id]);
+
+    const handleKeyDown = React.useCallback(
+      (event: React.KeyboardEvent) => {
+        if (event.key === "Enter" && event.shiftKey) {
+          event.preventDefault();
+          run(cell.content);
+        }
+      },
+      [cell.content, run],
+    );
 
     return (
       <div
@@ -49,18 +71,9 @@ export const RenderCodeCell = memo(
             <CodemirrorEditor
               isFocused={isFocused}
               value={cell.content}
-              onChange={(value) => {
-                updateCell(cell.id, { content: value ?? "" });
-              }}
-              onFocus={() => {
-                setFocusedCell(cell.id);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && event.shiftKey) {
-                  event.preventDefault();
-                  run(cell.content);
-                }
-              }}
+              onChange={handleChange}
+              onFocus={handleFocus}
+              onKeyDown={handleKeyDown}
             />
           </div>
 

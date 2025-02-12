@@ -2,6 +2,7 @@ import JsonView from "@uiw/react-json-view";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { memo } from "react";
 import { jsonViewTheme } from "../../theme/json-view-theme";
+import { observer } from "@legendapp/state/react";
 
 interface CollapsibleHeaderProps {
   isOpen: boolean;
@@ -9,22 +10,20 @@ interface CollapsibleHeaderProps {
   children: React.ReactNode;
 }
 
-const CollapsibleHeader = ({
-  isOpen,
-  onClick,
-  children,
-}: CollapsibleHeaderProps) => (
-  <button
-    onClick={onClick}
-    className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:bg-accent/50 w-full text-left border-t border-border"
-  >
-    {isOpen ? (
-      <ChevronDown className="h-3 w-3" />
-    ) : (
-      <ChevronRight className="h-3 w-3" />
-    )}
-    {children}
-  </button>
+const CollapsibleHeader = observer(
+  ({ isOpen, onClick, children }: CollapsibleHeaderProps) => (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:bg-accent/50 w-full text-left border-t border-border"
+    >
+      {isOpen ? (
+        <ChevronDown className="h-3 w-3" />
+      ) : (
+        <ChevronRight className="h-3 w-3" />
+      )}
+      {children}
+    </button>
+  ),
 );
 
 const MemoizedJsonView = memo(
@@ -51,7 +50,7 @@ interface CellOutputProps {
   onToggleOutput: () => void;
 }
 
-export const CellOutput = memo(
+export const CellOutput = observer(
   ({
     output,
     showLogs,

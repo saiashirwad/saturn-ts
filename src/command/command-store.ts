@@ -11,6 +11,7 @@ export interface Command {
 interface CommandState {
   commands: Command[];
   searchQuery: string;
+  globalVariables: Command[];
 }
 
 interface CommandPaletteState {
@@ -44,6 +45,8 @@ export const registerGlobalVariable: (name: string, value: any) => void = (
 export const command$ = observable<CommandStore>({
   commands: [],
   searchQuery: "",
+  globalVariables: () =>
+    command$.commands.filter((cmd) => cmd.category.get() === "global"),
 
   unregisterCommand: (id) => {
     const index = command$.commands.findIndex((cmd) => cmd.id.peek() === id);

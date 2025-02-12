@@ -15,17 +15,27 @@ const calculateEditorHeight = (content: string) => {
   return Math.max(lineCount * lineHeight + padding, 40); // minimum height of 40px for CodeMirror
 };
 
+const basicSetupConfig = {
+  foldGutter: false,
+  dropCursor: false,
+  allowMultipleSelections: false,
+  autocompletion: false,
+  indentOnInput: false,
+  highlightActiveLine: true,
+} as const;
+
 export function CodemirrorEditor({
   isFocused,
   ...props
 }: ReactCodeMirrorProps & { isFocused?: boolean }) {
   const { theme } = useDarkMode();
   const editorRef = useRef<EditorView | null>(null);
-
   const editorHeight = useMemo(
     () => `${calculateEditorHeight(props.value ?? "")}px`,
     [props.value],
   );
+
+  const extensions = useMemo(() => [langs.tsx()], []);
 
   useEffect(() => {
     if (editorRef.current) {
@@ -39,16 +49,9 @@ export function CodemirrorEditor({
     <div style={{ height: editorHeight }}>
       <CodeMirror
         height={editorHeight}
-        basicSetup={{
-          foldGutter: false,
-          dropCursor: false,
-          allowMultipleSelections: false,
-          autocompletion: false,
-          indentOnInput: false,
-          highlightActiveLine: true,
-        }}
+        basicSetup={basicSetupConfig}
         theme={theme === "dark" ? githubDark : githubLight}
-        extensions={[langs.tsx()]}
+        extensions={extensions}
         onCreateEditor={(view) => {
           editorRef.current = view;
         }}
