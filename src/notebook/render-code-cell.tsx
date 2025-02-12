@@ -1,18 +1,18 @@
+import { observer } from "@legendapp/state/react";
 import { Play } from "lucide-react";
 import * as React from "react";
-import { memo, useRef } from "react";
+import { useRef } from "react";
 import { CodemirrorEditor } from "../codemirror/codemirror-editor";
 import { CellOutput } from "./components/cell-output";
 import { useCellExecution } from "./hooks/use-cell-execution";
 import {
   CodeCell,
+  notebook$,
   setFocusedCell,
   toggleCellLogs,
   toggleCellOutput,
   updateCell,
 } from "./notebook-store";
-import { observer } from "@legendapp/state/react";
-import { notebook$ } from "./notebook-store";
 
 interface CodeCellProps {
   cell: CodeCell;

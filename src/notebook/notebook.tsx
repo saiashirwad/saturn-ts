@@ -1,4 +1,4 @@
-import { For } from "@legendapp/state/react";
+import { For, observer } from "@legendapp/state/react";
 import { use$ } from "@legendapp/state/react";
 import { Variable } from "lucide-react";
 import * as React from "react";
@@ -54,7 +54,7 @@ const TopBar = React.memo(function TopBar() {
   );
 });
 
-const Editor = React.memo(function Editor() {
+const Editor = observer(function Editor() {
   const focusedCellId = use$(notebook$.focusedCellId);
   const cellRefs = React.useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -99,7 +99,7 @@ const Editor = React.memo(function Editor() {
   );
 });
 
-function GlobalsPanel() {
+const GlobalsPanel = observer(() => {
   const globals = use$(notebook$.globals);
   const cells = use$(notebook$.cells);
 
@@ -153,4 +153,4 @@ function GlobalsPanel() {
       </div>
     </div>
   );
-}
+});
