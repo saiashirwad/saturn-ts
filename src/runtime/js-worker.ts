@@ -32,7 +32,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
         if (arg instanceof Error) {
           return `${arg.name}: ${arg.message}\n${arg.stack}`;
         }
-        return arg;
+        return JSON.stringify(arg);
       })
       .join(" ");
 
