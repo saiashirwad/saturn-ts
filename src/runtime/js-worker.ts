@@ -18,6 +18,29 @@ export interface WorkerResponse {
 
 export type ContextType = typeof runtimeContext;
 
+function wrapCode(code: string, globals: Array<{ name: string; value: any }>) {
+  return `
+      return (async () => {
+        try {
+          ${globals
+            .map(
+              ({ name, value }) => `const ${name} = ${JSON.stringify(value)};`,
+            )
+            .join("\n")}
+
+          let __lastExpressionResult;
+          __lastExpressionResult = await (async () => {
+            ${code}
+          })();
+
+          return __lastExpressionResult;
+        } catch (err) {
+          throw err;
+        }
+      })();
+    `;
+}
+
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   const { id, code, globals } = e.data;
   const logs: string[] = [];
@@ -45,39 +68,15 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   };
 
   console.error = (...args: any[]) => {
-    console.log(...args); // Use our enhanced console.log for errors too
+    console.log(...args);
     originalError.apply(console, args);
   };
 
   try {
-    // Modified wrappedCode to not require exports
-    const wrappedCode = `
-      return (async () => {
-        try {
-          ${globals
-            .map(
-              ({ name, value }) => `const ${name} = ${JSON.stringify(value)};`,
-            )
-            .join("\n")}
+    const wrappedCode = wrapCode(code, globals);
 
-          let __lastExpressionResult;
-          __lastExpressionResult = await (async () => {
-            ${code}
-          })();
-
-          return __lastExpressionResult;
-        } catch (err) {
-          throw err;
-        }
-      })();
-    `;
-
-    const context = {
-      ...runtimeContext,
-    };
-
-    const fn = new Function(...Object.keys(context), wrappedCode);
-    const result = await fn(...Object.values(context));
+    const fn = new Function(...Object.keys(runtimeContext), wrappedCode);
+    const result = await fn(...Object.values(runtimeContext));
 
     self.postMessage({
       id,

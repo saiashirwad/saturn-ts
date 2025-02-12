@@ -37,23 +37,24 @@ interface BaseCell {
 
 export interface TextCell extends BaseCell {
   type: "text";
-  output: TextCellOutput | null;
+  output: TextCellOutput;
 }
 
 export interface CodeCell extends BaseCell {
   type: "code";
-  output: CodeCellOutput | null;
+  output: CodeCellOutput;
 }
 
 export type Cell = TextCell | CodeCell;
 
 function createCell(type: Cell["type"] = "code"): Cell {
+  // @ts-ignore
   return {
     id: createId(),
     type,
     content: "",
     error: null,
-    output: null,
+    output: type === "code" ? { logs: [], result: null } : { html: "" },
     analysis: {
       exports: [],
       references: [],
@@ -181,6 +182,17 @@ export function moveCellDown(id: string) {
   if (index < cells.length - 1) {
     const [moved] = notebook$.cells.splice(index, 1);
     notebook$.cells.splice(index + 1, 0, moved);
+  }
+}
+
+export function addCellLog(id: string, log: string) {
+  const cells = notebook$.cells.peek();
+  const cell = cells.findIndex((c) => c.id === id);
+  if (cell !== -1) {
+    const currentCell = notebook$.cells[cell].peek();
+    if (currentCell.type === "code") {
+      currentCell.output?.logs.push(log);
+    }
   }
 }
 

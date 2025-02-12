@@ -10,7 +10,12 @@ interface ExecutionError {
   logs: string[];
 }
 
+type JavascriptExecutorParams = {
+  onLog: (log: string) => void;
+};
+
 export class JavaScriptExecutor {
+  private onLog: (log: string) => void;
   private worker: Worker | null = null;
   private executionMap = new Map<
     string,
@@ -22,8 +27,9 @@ export class JavaScriptExecutor {
     }
   >();
 
-  constructor() {
+  constructor(params: JavascriptExecutorParams) {
     this.initializeWorker();
+    this.onLog = params.onLog;
   }
 
   private initializeWorker() {
@@ -49,7 +55,7 @@ export class JavaScriptExecutor {
       case "log":
         if (log) {
           execution.logs.push(log);
-          // Also log to console for development visibility
+          this.onLog(log);
           console.log(log);
         }
         break;
