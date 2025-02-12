@@ -9,6 +9,7 @@ import {
   updateCellAnalysis,
 } from "./notebook-store";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { hashCode } from "../utils/hash";
 
 interface CodeCellProps {
   cell: CodeCell;
@@ -26,9 +27,26 @@ export const RenderCodeCell = memo(
 
     const run = useCallback(
       async (code: string) => {
+        // Check if code has changed by comparing hashes
+        const newHash = hashCode(code);
+        if (cell.hash === newHash) {
+          console.log("Code unchanged, skipping execution");
+          return;
+        }
+
         try {
           const executor = new JavaScriptExecutor();
           const result = await executor.execute(code);
+
+          // Update cell with new hash and results
+          updateCell(cell.id, {
+            hash: newHash,
+            output: {
+              logs: result.logs,
+              result: result.result,
+            },
+            error: null,
+          });
 
           // Update cell analysis with exports
           if (result.result && typeof result.result === "object") {
@@ -41,17 +59,9 @@ export const RenderCodeCell = memo(
               references: [], // TODO: Parse code to find references
             });
           }
-
-          // Update cell output with both logs and result
-          updateCell(cell.id, {
-            output: {
-              logs: result.logs,
-              result: result.result,
-            },
-            error: null,
-          });
         } catch (error) {
           updateCell(cell.id, {
+            hash: newHash,
             error: error instanceof Error ? error.message : String(error),
             output: null,
           });
@@ -61,7 +71,7 @@ export const RenderCodeCell = memo(
           });
         }
       },
-      [cell.id],
+      [cell.id, cell.hash],
     );
 
     const CollapsibleHeader = ({

@@ -2,6 +2,7 @@ import { batch, observable } from "@legendapp/state";
 import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/local-storage";
 import { syncObservable } from "@legendapp/state/sync";
 import { createId } from "@paralleldrive/cuid2";
+import { hashCode } from "../utils/hash";
 
 interface BaseCell {
   id: string;
@@ -9,6 +10,7 @@ interface BaseCell {
   content: string;
   error: string | null;
   output: any;
+  hash?: string;
   analysis: {
     exports: Array<{
       name: string;
@@ -162,8 +164,17 @@ export function moveCellDown(id: string) {
 export function updateCell(id: string, updates: Partial<Cell>) {
   const index = notebook$.cells.peek().findIndex((c) => c.id === id);
   if (index !== -1) {
+    const currentCell = notebook$.cells[index].peek();
+
+    if (
+      updates.content !== undefined &&
+      updates.content !== currentCell.content
+    ) {
+      updates.hash = hashCode(updates.content);
+    }
+
     notebook$.cells[index].set({
-      ...notebook$.cells[index].peek(),
+      ...currentCell,
       ...updates,
     });
   }
