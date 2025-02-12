@@ -85,7 +85,6 @@ const GlobalsPanel = observer(() => {
   const globals = use$(notebook$.globals);
   const cells = use$(notebook$.cells);
 
-  // Calculate total references for each global
   const globalRefs = React.useMemo(() => {
     const refs = new Map<string, number>();
 

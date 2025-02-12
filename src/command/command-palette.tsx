@@ -15,6 +15,7 @@ import { command$, commandPalette$ } from "./command-store";
 export const CommandPalette = observer(() => {
   const isOpen = use$(commandPalette$.isOpen);
   const focusedCell = use$(notebook$.focusedCellId);
+  const globals = use$(notebook$.globals);
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -99,7 +100,7 @@ export const CommandPalette = observer(() => {
         </CommandGroup> */}
 
         <CommandGroup heading="Global Variables">
-          <For each={command$.globalVariables}>
+          <For each={notebook$.globals}>
             {(cmd) => (
               <CommandItem
                 key={cmd.name.get()}
