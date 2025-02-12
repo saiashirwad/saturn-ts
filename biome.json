@@ -22,10 +22,5 @@
       "recommended": false
     }
   },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "double",
-      "semicolons": "asNeeded"
-    }
-  }
+  "javascript": {}
 }

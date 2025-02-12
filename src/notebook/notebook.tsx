@@ -1,9 +1,9 @@
-import { use$ } from "@legendapp/state/react"
-import * as React from "react"
-import { CommandPalette } from "../command/command-palette"
-import { useKeyboardNav } from "../keyboard/use-keyboard-nav"
-import { CodeCell } from "./code-cell"
-import { addCell, notebook$ } from "./notebook-store"
+import { use$ } from "@legendapp/state/react";
+import * as React from "react";
+import { CommandPalette } from "../command/command-palette";
+import { useKeyboardNav } from "../keyboard/use-keyboard-nav";
+import { addCell, notebook$ } from "./notebook-store";
+import { RenderCodeCell } from "./render-code-cell";
 
 export function Notebook() {
   return (
@@ -16,7 +16,7 @@ export function Notebook() {
       <TopBar />
       <Editor />
     </div>
-  )
+  );
 }
 
 function TopBar() {
@@ -41,15 +41,15 @@ function TopBar() {
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 function Editor() {
-  const cells = use$(notebook$.cells)
-  const focusedCellId = use$(notebook$.focusedCellId)
-  const cellRefs = React.useRef<Map<string, HTMLDivElement>>(new Map())
+  const cells = use$(notebook$.cells);
+  const focusedCellId = use$(notebook$.focusedCellId);
+  const cellRefs = React.useRef<Map<string, HTMLDivElement>>(new Map());
 
-  useKeyboardNav()
+  useKeyboardNav();
 
   return (
     <div
@@ -59,18 +59,19 @@ function Editor() {
     >
       {cells.map((cell, index) => (
         <div key={cell.id} role="listitem">
-          <CodeCell
-            ref={(el) => {
-              if (el) {
-                cellRefs.current.set(cell.id, el)
-              }
-            }}
-            cell={cell}
-            index={index + 1}
-            isFocused={focusedCellId === cell.id}
-          />
+          {cell.type === "code" ? (
+            <RenderCodeCell
+              ref={(el) => {
+                if (el) {
+                  cellRefs.current.set(cell.id, el);
+                }
+              }}
+              cell={cell}
+              isFocused={focusedCellId === cell.id}
+            />
+          ) : null}
         </div>
       ))}
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import { use$ } from "@legendapp/state/react"
-import { Search, Variable } from "lucide-react"
-import * as React from "react"
+import { use$ } from "@legendapp/state/react";
+import { Search, Variable } from "lucide-react";
+import * as React from "react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -8,40 +8,40 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../components/ui/command"
-import { addCell, notebook$, setFocusedCell } from "../notebook/notebook-store"
-import { command$, commandPalette$ } from "./command-store"
+} from "../components/ui/command";
+import { addCell, notebook$, setFocusedCell } from "../notebook/notebook-store";
+import { command$, commandPalette$ } from "./command-store";
 
 export function CommandPalette() {
-  const isOpen = use$(commandPalette$.isOpen)
-  const cells = use$(notebook$.cells)
-  const globalVariables = use$(command$.commands)
+  const isOpen = use$(commandPalette$.isOpen);
+  const cells = use$(notebook$.cells);
+  const globalVariables = use$(command$.commands);
 
   const globals = React.useMemo(() => {
     return Object.fromEntries(
       globalVariables
         .filter((cmd) => cmd.category === "global")
         .map((cmd) => [cmd.name, cmd.handler]),
-    )
-  }, [globalVariables])
+    );
+  }, [globalVariables]);
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        commandPalette$.isOpen.set(true)
+        e.preventDefault();
+        commandPalette$.isOpen.set(true);
       }
-    }
+    };
 
-    document.addEventListener("keydown", down)
-    return () => document.removeEventListener("keydown", down)
-  }, [])
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
 
   return isOpen ? (
     <CommandDialog
       open={isOpen}
       onOpenChange={(s) => {
-        commandPalette$.isOpen.set(s)
+        commandPalette$.isOpen.set(s);
       }}
     >
       <CommandInput placeholder="Type a command or search..." />
@@ -50,8 +50,8 @@ export function CommandPalette() {
         <CommandGroup heading="Actions">
           <CommandItem
             onSelect={() => {
-              addCell("reactive")
-              commandPalette$.isOpen.set(false)
+              addCell("reactive");
+              commandPalette$.isOpen.set(false);
             }}
           >
             <Search className="w-4 h-4 mr-2" />
@@ -60,8 +60,8 @@ export function CommandPalette() {
 
           <CommandItem
             onSelect={() => {
-              addCell("non-reactive")
-              commandPalette$.isOpen.set(false)
+              addCell("non-reactive");
+              commandPalette$.isOpen.set(false);
             }}
           >
             <Search className="w-4 h-4 mr-2" />
@@ -74,8 +74,8 @@ export function CommandPalette() {
             <CommandItem
               key={cell.id}
               onSelect={() => {
-                setFocusedCell(cell.id)
-                commandPalette$.isOpen.set(false)
+                setFocusedCell(cell.id);
+                commandPalette$.isOpen.set(false);
               }}
               className="flex justify-between items-center"
             >
@@ -94,7 +94,7 @@ export function CommandPalette() {
               key={name}
               onSelect={() => {
                 // Could add action here if needed
-                commandPalette$.isOpen.set(false)
+                commandPalette$.isOpen.set(false);
               }}
               className="flex justify-between items-center"
             >
@@ -110,5 +110,5 @@ export function CommandPalette() {
         </CommandGroup>
       </CommandList>
     </CommandDialog>
-  ) : null
+  ) : null;
 }

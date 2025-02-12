@@ -1,7 +1,7 @@
 export async function importModule(url: string) {
   try {
-    return await import(/* @vite-ignore */ url)
+    return await import(/* @vite-ignore */ url);
   } catch (error) {
-    throw new Error(`Failed to import module: ${url}`)
+    throw new Error(`Failed to import module: ${url}`);
   }
 }
