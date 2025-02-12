@@ -12,6 +12,7 @@ import {
   updateCell,
 } from "./notebook-store";
 import { observer } from "@legendapp/state/react";
+import { notebook$ } from "./notebook-store";
 
 interface CodeCellProps {
   cell: CodeCell;
@@ -47,6 +48,11 @@ export const RenderCodeCell = observer(
       [cell.content, run],
     );
 
+    // Instead of getting the values directly from cell, get them from the store
+    const cellState = notebook$.cells.find((c) => c.id.get() === cell.id);
+    const showLogs = cellState?.showLogs.get() ?? true;
+    const showOutput = cellState?.showOutput.get() ?? true;
+
     return (
       <div
         ref={ref}
@@ -80,8 +86,8 @@ export const RenderCodeCell = observer(
           {cell.output && (
             <CellOutput
               output={cell.output}
-              showLogs={cell.showLogs}
-              showOutput={cell.showOutput}
+              showLogs={showLogs}
+              showOutput={showOutput}
               onToggleLogs={() => toggleCellLogs(cell.id)}
               onToggleOutput={() => toggleCellOutput(cell.id)}
             />

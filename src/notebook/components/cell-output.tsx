@@ -68,7 +68,10 @@ export const CellOutput = observer(
             {showLogs && (
               <div className="flex-1 px-2 py-1 font-mono text-xs bg-background text-foreground">
                 {output.logs.map((log: string, i: number) => (
-                  <div key={i} className="whitespace-pre-wrap opacity-75">
+                  <div
+                    key={`${i}-${log}`}
+                    className="whitespace-pre-wrap opacity-75"
+                  >
                     {log}
                   </div>
                 ))}

@@ -228,19 +228,19 @@ export function updateCellAnalysis(id: string, analysis: BaseCell["analysis"]) {
 }
 
 export function toggleCellLogs(id: string) {
-  const cells = notebook$.cells.peek();
+  const cells = notebook$.cells.get();
   const index = cells.findIndex((c) => c.id === id);
   if (index !== -1) {
-    const current = notebook$.cells[index].showLogs.peek();
+    const current = notebook$.cells[index].showLogs.get();
     notebook$.cells[index].showLogs.set(!current);
   }
 }
 
 export function toggleCellOutput(id: string) {
-  const cells = notebook$.cells.peek();
+  const cells = notebook$.cells.get();
   const index = cells.findIndex((c) => c.id === id);
   if (index !== -1) {
-    const current = notebook$.cells[index].showOutput.peek();
+    const current = notebook$.cells[index].showOutput.get();
     notebook$.cells[index].showOutput.set(!current);
   }
 }
