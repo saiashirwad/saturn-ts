@@ -12,7 +12,6 @@ export interface WorkerResponse {
   result?: any;
   error?: string;
   log?: string;
-  exports?: string[];
   logs?: string[];
 }
 
@@ -27,11 +26,18 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
   // Override console.log to stream logs
   const originalLog = console.log;
+  const originalError = console.error;
+
   console.log = (...args: any[]) => {
     const log = args
-      .map((arg) =>
-        typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
-      )
+      .map((arg) => {
+        if (arg instanceof Error) {
+          return arg.stack || arg.message;
+        }
+        return typeof arg === "object"
+          ? JSON.stringify(arg, null, 2)
+          : String(arg);
+      })
       .join(" ");
 
     self.postMessage({
@@ -43,11 +49,21 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     originalLog.apply(console, args);
   };
 
+  console.error = (...args: any[]) => {
+    console.log(...args); // Use our enhanced console.log for errors too
+    originalError.apply(console, args);
+  };
+
   try {
     // Wrap code in async IIFE
     const wrappedCode = `
       return (async () => {
-        ${code}
+        try {
+          ${code}
+        } catch (err) {
+          console.error(err);
+          throw err;
+        }
       })();
     `;
 
@@ -62,14 +78,20 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
       logs: (self as any).logs,
     } as WorkerResponse);
   } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? `${error.name}: ${error.message}\n${error.stack}`
+        : String(error);
+
     self.postMessage({
       id,
       type: "error",
       success: false,
-      error: error instanceof Error ? error.message : String(error),
+      error: errorMessage,
       logs: (self as any).logs,
     } as WorkerResponse);
   } finally {
     console.log = originalLog;
+    console.error = originalError;
   }
 };

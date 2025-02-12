@@ -3,7 +3,6 @@ import type { WorkerResponse } from "./js-worker";
 interface ExecutionResult {
   result: unknown;
   logs: string[];
-  exports?: string[];
 }
 
 interface ExecutionError {
@@ -41,7 +40,7 @@ export class JavaScriptExecutor {
   }
 
   private handleWorkerMessage(event: MessageEvent<WorkerResponse>) {
-    const { id, type, success, result, error, log, exports } = event.data;
+    const { id, type, success, result, error, log } = event.data;
     const execution = this.executionMap.get(id);
 
     if (!execution) return;
@@ -50,6 +49,8 @@ export class JavaScriptExecutor {
       case "log":
         if (log) {
           execution.logs.push(log);
+          // Also log to console for development visibility
+          console.log(`[Cell ${id}]:`, log);
         }
         break;
 
@@ -59,13 +60,14 @@ export class JavaScriptExecutor {
         execution.resolve({
           result,
           logs: execution.logs,
-          exports,
         });
         break;
 
       case "error":
         clearTimeout(execution.timeout);
         this.executionMap.delete(id);
+        // Log the error to console for development visibility
+        console.error(`[Cell ${id}] Execution Error:`, error);
         execution.reject({
           error: error ?? "Unknown error",
           logs: execution.logs,
@@ -91,7 +93,10 @@ export class JavaScriptExecutor {
       const timeout = window.setTimeout(() => {
         this.executionMap.delete(id);
         this.initializeWorker(); // Recreate worker on timeout
-        reject({ error: "Execution timed out", logs: [] });
+        reject({
+          error: "Execution timed out after " + timeoutMs + "ms",
+          logs: [],
+        });
       }, timeoutMs);
 
       this.executionMap.set(id, {

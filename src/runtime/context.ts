@@ -16,6 +16,7 @@ export function createRuntimeContext(context: Record<string, any>) {
     Error,
     Promise,
     RegExp,
+    fetch,
     // Add any other globals you want to expose
     ...context,
   };
