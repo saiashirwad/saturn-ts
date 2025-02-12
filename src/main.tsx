@@ -1,43 +1,32 @@
+import { observable } from "@legendapp/state";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { StrictMode, useRef } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { NotebookHandle, NotebookVanilla } from "./core/notebook-react";
+import { NotebookComponent } from "./core/notebook-react";
+import { NotebookState } from "./core/notebook-vanilla";
 import "./index.css";
 import { queryClient } from "./lib/query-client";
 import { initializeTheme } from "./lib/theme";
 
 initializeTheme();
 
-function Haha() {
-  const notebookRef = useRef<NotebookHandle>(null);
+const state = observable<NotebookState>({
+  cells: [{ id: "1", type: "code", content: 'console.log("Hello World!")' }],
+  focusedCellId: null,
+  globals: {},
+});
 
-  const handleAddCell = () => {
-    notebookRef.current?.addCell();
-  };
-
+function NotebookWrapper() {
   return (
     <div>
-      <button onClick={handleAddCell}>Add Cell</button>
-      <NotebookVanilla
-        ref={notebookRef}
-        className="my-notebook"
-        initialState={{
-          cells: [
-            { id: "1", type: "code", content: 'console.log("Hello World!")' },
-          ],
-        }}
-        onStateChange={(state) => console.log("Notebook state:", state)}
-        onCellExecuted={(cellId, output) =>
-          console.log(`Cell ${cellId} output:`, output)
-        }
-      />
+      <NotebookComponent className="my-notebook" state$={state} />
     </div>
   );
 }
+
 function App() {
-  // return <Notebook />;
-  return <Haha />;
+  return <NotebookWrapper />;
 }
 
 createRoot(document.getElementById("root")!).render(

@@ -1,14 +1,9 @@
 import { EditorView } from "@codemirror/view";
+import { Observable, observable } from "@legendapp/state";
 import { langs } from "@uiw/codemirror-extensions-langs";
-import { JavaScriptExecutor } from "../runtime/js-executor";
 import { githubDark } from "@uiw/codemirror-themes-all";
 import { transform } from "../runtime/find-references";
-import {
-  observable,
-  ObservableObject,
-  computed,
-  Observable,
-} from "@legendapp/state";
+import { JavaScriptExecutor } from "../runtime/js-executor";
 
 export interface Cell {
   id: string;
@@ -250,15 +245,46 @@ export class Notebook {
   }
 
   private render(container: HTMLElement) {
-    // Clear existing content and cell elements map
-    container.innerHTML = "";
-    this.cellElements.clear();
+    // Get current cells
+    const currentCells = this.state$.cells.get();
+    const existingIds = new Set(this.cellElements.keys());
+    const newIds = new Set(currentCells.map((cell) => cell.id));
 
-    // Render all cells
-    this.state$.cells.get().forEach((cell) => {
-      const cellElement = this.createCellElement(cell);
-      this.cellElements.set(cell.id, cellElement);
-      container.appendChild(cellElement);
+    // Remove cells that no longer exist
+    for (const id of existingIds) {
+      if (!newIds.has(id)) {
+        const element = this.cellElements.get(id);
+        if (element && element.parentElement) {
+          element.parentElement.removeChild(element);
+        }
+        this.cellElements.delete(id);
+      }
+    }
+
+    // Add or update cells
+    currentCells.forEach((cell, index) => {
+      if (this.cellElements.has(cell.id)) {
+        // Update existing cell's position if needed
+        const element = this.cellElements.get(cell.id)!;
+        const currentIndex = Array.from(container.children).indexOf(element);
+        if (currentIndex !== index) {
+          container.insertBefore(element, container.children[index] || null);
+        }
+
+        // Update output/error if needed
+        this.updateCellOutput(element, cell);
+      } else {
+        // Create new cell
+        const cellElement = this.createCellElement(cell);
+        this.cellElements.set(cell.id, cellElement);
+
+        // Insert at correct position
+        if (index === container.children.length) {
+          container.appendChild(cellElement);
+        } else {
+          container.insertBefore(cellElement, container.children[index]);
+        }
+      }
     });
 
     // Focus the focused cell if any
@@ -271,6 +297,75 @@ export class Notebook {
           (editor as HTMLElement).focus();
         }
       }
+    }
+  }
+
+  private updateCellOutput(element: HTMLElement, cell: Cell) {
+    // Find or create output container
+    let outputContainer = element.querySelector(
+      ".output-container",
+    ) as HTMLElement;
+    if (!outputContainer) {
+      outputContainer = document.createElement("div");
+      outputContainer.className = "output-container border-t border-border";
+      element.querySelector(".border")?.appendChild(outputContainer);
+    }
+
+    // Clear existing output
+    outputContainer.innerHTML = "";
+
+    // Update output if exists
+    if (cell.output) {
+      // Show logs if any
+      if (cell.output.logs.length > 0) {
+        const logsContainer = document.createElement("div");
+        logsContainer.className =
+          "p-2 font-mono text-sm text-foreground border-b border-border";
+        cell.output.logs.forEach((log) => {
+          const logLine = document.createElement("div");
+          logLine.className = "text-muted-foreground";
+          logLine.textContent = log;
+          logsContainer.appendChild(logLine);
+        });
+        outputContainer.appendChild(logsContainer);
+      }
+
+      // Show result if any
+      if (cell.output.result !== undefined) {
+        const resultContainer = document.createElement("div");
+        resultContainer.className = "p-2 font-mono text-sm text-foreground";
+
+        if (typeof cell.output.result === "object") {
+          resultContainer.textContent = JSON.stringify(
+            cell.output.result,
+            null,
+            2,
+          );
+        } else {
+          resultContainer.textContent = String(cell.output.result);
+        }
+
+        outputContainer.appendChild(resultContainer);
+      }
+    }
+
+    // Update error if exists
+    const errorContainer = element.querySelector(
+      ".error-container",
+    ) as HTMLElement;
+    if (cell.error) {
+      if (!errorContainer) {
+        const newErrorContainer = document.createElement("div");
+        newErrorContainer.className =
+          "error-container flex-1 p-2 font-mono text-sm bg-red-50 text-red-900 border-t border-red-200";
+        newErrorContainer.setAttribute("role", "alert");
+        newErrorContainer.textContent = cell.error;
+        element.querySelector(".border")?.appendChild(newErrorContainer);
+      } else {
+        errorContainer.textContent = cell.error;
+      }
+    } else if (errorContainer) {
+      errorContainer.remove();
     }
   }
 
