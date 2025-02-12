@@ -32,7 +32,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     const log = args
       .map((arg) => {
         if (arg instanceof Error) {
-          return arg.stack || arg.message;
+          return `${arg.name}: ${arg.message}\n${arg.stack}`;
         }
         return typeof arg === "object"
           ? JSON.stringify(arg, null, 2)
@@ -55,13 +55,18 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   };
 
   try {
-    // Wrap code in async IIFE
+    // Wrap code in async IIFE with better error handling
     const wrappedCode = `
       return (async () => {
         try {
-          ${code}
+          console.log("Starting execution...");
+          const result = await (async () => {
+            ${code}
+          })();
+          console.log("Execution result:", result);
+          return result;
         } catch (err) {
-          console.error(err);
+          console.error("Execution error:", err);
           throw err;
         }
       })();
@@ -82,6 +87,8 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
       error instanceof Error
         ? `${error.name}: ${error.message}\n${error.stack}`
         : String(error);
+
+    console.error("Worker caught error:", errorMessage);
 
     self.postMessage({
       id,
