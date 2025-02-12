@@ -9,12 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from "../components/ui/command";
-import {
-  addCell,
-  deleteCell,
-  notebook$,
-  setFocusedCell,
-} from "../notebook/notebook-store";
+import { addCell, deleteCell, notebook$ } from "../notebook/notebook-store";
 import { command$, commandPalette$ } from "./command-store";
 
 export const CommandPalette = observer(() => {
