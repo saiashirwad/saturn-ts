@@ -59,38 +59,52 @@ function findReferences(
   }
 }
 
+async function runCode(
+  code: string,
+  globals: Array<{ name: string; value: any }>,
+) {
+  const executor = new JavaScriptExecutor();
+  const globalScope = Object.fromEntries(
+    globals.map(({ name, value }) => [name, value]),
+  );
+
+  // Execute with globals injected into scope
+  const result = await executor.execute(code, globalScope);
+
+  // Find references before execution
+  const references = findReferences(code, globals, "");
+
+  // Only try to extract exports if result is an object
+  const exports =
+    result.result && typeof result.result === "object"
+      ? Object.entries(result.result).map(([name, value]) => ({
+          name,
+          value,
+          type: typeof value,
+        }))
+      : [];
+
+  return {
+    result: result.result,
+    logs: result.logs,
+    exports,
+    references,
+  };
+}
+
 export function useCellExecution(cellId: string) {
   return useCallback(
     async (code: string) => {
       try {
-        const executor = new JavaScriptExecutor();
         const globals = notebook$.globals.get();
-
-        const globalScope = Object.fromEntries(
-          globals.map(({ name, value }) => [name, value]),
-        );
-
-        // Find references before execution
-        const references = findReferences(code, globals, cellId);
-
-        // Execute with globals injected into scope
-        const result = await executor.execute(code, globalScope);
-
         const newHash = hashCode(code);
 
-        // Only try to extract exports if result is an object
-        const exports =
-          result.result && typeof result.result === "object"
-            ? Object.entries(result.result).map(([name, value]) => ({
-                name,
-                value,
-                type: typeof value,
-              }))
-            : [];
+        const result = await runCode(code, globals);
 
+        console.log({ result });
         updateCellAnalysis(cellId, {
-          exports,
-          references,
+          exports: result.exports,
+          references: result.references,
         });
 
         updateCell(cellId, {
