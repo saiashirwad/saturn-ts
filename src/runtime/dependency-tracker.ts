@@ -1,5 +1,4 @@
-import { PluginObj } from "@babel/core";
-import { ObjectProperty } from "@babel/types";
+import type { PluginObj } from "@babel/core";
 
 export function trackDependencies(
   globalReactiveVariables: Set<string>,
