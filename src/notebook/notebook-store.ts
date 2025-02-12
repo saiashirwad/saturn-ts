@@ -8,9 +8,13 @@ interface BaseCell {
   type: "text" | "code";
   content: string;
   error: string | null;
-  output: any; // Both cell types can produce output
+  output: any;
   analysis: {
-    exports: string[]; // Values this cell exports
+    exports: Array<{
+      name: string;
+      type: string;
+      value: any;
+    }>;
     references: string[]; // All external values this cell references
   };
 }
@@ -41,14 +45,30 @@ function createCell(type: Cell["type"] = "code"): Cell {
 
 interface NotebookState {
   cells: Cell[];
-  globalObject: Record<string, any>;
   focusedCellId: string | null;
+  globals: Array<{
+    name: string;
+    value: any;
+    type: string;
+    sourceCell: string;
+  }>;
 }
 
 export const notebook$ = observable<NotebookState>({
   cells: [],
-  globalObject: {},
   focusedCellId: null,
+  globals: () => {
+    const cells = notebook$.cells.get();
+    return cells.flatMap(
+      (cell) =>
+        cell.analysis?.exports?.map((exp) => ({
+          name: exp.name,
+          value: exp.value,
+          type: exp.type,
+          sourceCell: cell.id,
+        })) ?? [],
+    );
+  },
 });
 
 syncObservable(notebook$, {
@@ -149,12 +169,15 @@ export function updateCell(id: string, updates: Partial<Cell>) {
   }
 }
 
-export function updateGlobalObject(globalObject: Record<string, any>) {
-  for (const [key, value] of Object.entries(globalObject)) {
-    notebook$.globalObject[key].set(value);
+export function updateCellAnalysis(id: string, analysis: BaseCell["analysis"]) {
+  const index = notebook$.cells.peek().findIndex((c) => c.id === id);
+  if (index !== -1) {
+    if (!notebook$.cells[index].analysis.peek()) {
+      notebook$.cells[index].analysis.set({
+        exports: [],
+        references: [],
+      });
+    }
+    notebook$.cells[index].analysis.set(analysis);
   }
-}
-
-export function setGlobalObject(globalObject: Record<string, any>) {
-  notebook$.globalObject.set(globalObject);
 }

@@ -1,14 +1,12 @@
-import { use$ } from "@legendapp/state/react";
 import * as React from "react";
 import { memo, useCallback, useRef } from "react";
 import { CodemirrorEditor } from "../codemirror/codemirror-editor";
-import { registerGlobalVariable } from "../command/command-store";
 import { JavaScriptExecutor } from "../runtime/js-executor";
 import {
   CodeCell,
-  notebook$,
   setFocusedCell,
   updateCell,
+  updateCellAnalysis,
 } from "./notebook-store";
 
 interface CodeCellProps {
@@ -21,7 +19,6 @@ export const RenderCodeCell = memo(
   ({ cell, isFocused, ref }: CodeCellProps) => {
     if (cell.type !== "code") return null;
 
-    const globals = use$(notebook$.globalObject);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const run = useCallback(
@@ -47,15 +44,29 @@ export const RenderCodeCell = memo(
             });
           }
 
-          // Register any exported values as globals
+          // Update cell analysis with exports
           if (result.result && typeof result.result === "object") {
-            for (const [key, value] of Object.entries(result.result)) {
-              registerGlobalVariable(key, value);
-            }
+            updateCellAnalysis(cell.id, {
+              exports: Object.entries(result.result).map(([name, value]) => ({
+                name,
+                value,
+                type: typeof value,
+              })),
+              references: [], // TODO: Parse code to find references
+            });
+          } else {
+            updateCellAnalysis(cell.id, {
+              exports: [],
+              references: [],
+            });
           }
         } catch (error) {
           updateCell(cell.id, {
             error: error instanceof Error ? error.message : String(error),
+          });
+          updateCellAnalysis(cell.id, {
+            exports: [],
+            references: [],
           });
         }
       },
