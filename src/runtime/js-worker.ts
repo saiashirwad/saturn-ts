@@ -29,9 +29,7 @@ function wrapCode(code: string, globals: Array<{ name: string; value: any }>) {
             .join("\n")}
 
           let __lastExpressionResult;
-          __lastExpressionResult = await (async () => {
-            ${code}
-          })();
+          __lastExpressionResult = await ${code};
 
           return __lastExpressionResult;
         } catch (err) {

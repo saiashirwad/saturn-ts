@@ -1,5 +1,5 @@
 import { JavaScriptExecutor } from "./js-executor";
-import { findReferences } from "./find-references";
+import { transform } from "./find-references";
 
 export async function runCode(
   code: string,
@@ -8,9 +8,10 @@ export async function runCode(
 ) {
   const executor = new JavaScriptExecutor({ onLog });
 
-  const result = await executor.execute(code, globals);
-  const references =
-    (await findReferences(code, new Set(globals.map((g) => g.name)), "")) || [];
+  const { code: transformedCode, references: references } =
+    (await transform(code, new Set(globals.map((g) => g.name)), "")) || [];
+
+  const result = await executor.execute(transformedCode, globals);
 
   const exports =
     result.result && typeof result.result === "object"
