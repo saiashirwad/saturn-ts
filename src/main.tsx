@@ -1,39 +1,29 @@
-import { observable } from "@legendapp/state";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { NotebookComponent } from "./core/notebook-react";
-import { NotebookState } from "./core/notebook-vanilla";
+import { render } from "solid-js/web";
+import { Notebook } from "./components/notebook/Notebook";
 import "./index.css";
-import { queryClient } from "./lib/query-client";
 import { initializeTheme } from "./lib/theme";
 
 initializeTheme();
 
-const state = observable<NotebookState>({
-  cells: [{ id: "1", type: "code", content: 'console.log("Hello World!")' }],
-  focusedCellId: null,
-  globals: {},
-});
+const initialCell = {
+  id: "1",
+  type: "code" as const,
+  content: 'console.log("Hello World!")',
+};
 
-function NotebookWrapper() {
+const App = () => {
   return (
-    <div>
-      <NotebookComponent className="my-notebook" state$={state} />
+    <div class="w-full h-full">
+      <Notebook
+        class="my-notebook"
+        initialState={{
+          cells: [initialCell],
+          focusedCellId: null,
+          globals: {},
+        }}
+      />
     </div>
   );
-}
+};
 
-function App() {
-  return <NotebookWrapper />;
-}
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  </StrictMode>,
-);
+render(() => <App />, document.getElementById("root")!);
