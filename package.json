@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@babel/core": "^7.26.8",
+    "@babel/standalone": "^7.26.8",
     "@codemirror/lang-javascript": "^6.2.2",
     "@legendapp/state": "^3.0.0-beta.26",
     "@locker/near-membrane-dom": "^0.14.0",

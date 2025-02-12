@@ -9,7 +9,9 @@ export async function runCode(
   const executor = new JavaScriptExecutor({ onLog });
 
   const result = await executor.execute(code, globals);
-  const references = (await findReferences(code, globals, "")) || [];
+  const references =
+    (await findReferences(code, new Set(globals.map((g) => g.name)), "")) || [];
+  console.log(references);
 
   const exports =
     result.result && typeof result.result === "object"

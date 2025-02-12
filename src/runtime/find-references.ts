@@ -1,5 +1,7 @@
-import * as babel from "@babel/core";
+// @ts-ignore
+import * as babel from "@babel/standalone";
 import { trackDependencies } from "./dependency-tracker";
+
 export async function findReferences(
   code: string,
   globals: Set<string>,
@@ -7,8 +9,17 @@ export async function findReferences(
 ) {
   const dependencies = new Map<string, number>();
 
-  await babel.transformAsync(code, {
+  const _code = `(async function() {
+    ${code}
+  })()`;
+
+  await babel.transform(_code, {
+    filename: `cell-${cellId}.ts`,
     plugins: [trackDependencies(globals, dependencies)],
+    presets: ["typescript"],
+    parserOpts: {
+      plugins: ["typescript", "jsx"],
+    },
   });
 
   return Array.from(dependencies.entries()).map(([name, dependencies]) => ({
@@ -17,56 +28,3 @@ export async function findReferences(
     sourceCell: cellId,
   }));
 }
-// export async function findReferences(
-//   code: string,
-//   globals: Array<{ name: string; value: any }>,
-//   cellId: string,
-// ) {
-//   const _code = `(async () => {
-//     ${code}
-//   })();`;
-//   const references = new Map<string, number>();
-
-//   // TODO: fix this
-//   try {
-//     const ast = await parse(_code, {
-//       syntax: "typescript",
-//       tsx: true,
-//     });
-
-//     const visitIdentifier = (node: Identifier) => {
-//       if (globals.find((g) => g.name === node.value)) {
-//         const count = references.get(node.value) || 0;
-//         references.set(node.value, count + 1);
-//       }
-//     };
-
-//     const traverse = (node: any) => {
-//       if (!node || typeof node !== "object") return;
-
-//       if (node.type === "Identifier") {
-//         visitIdentifier(node as Identifier);
-//       }
-
-//       for (const key in node) {
-//         if (Array.isArray(node[key])) {
-//           node[key].forEach(traverse);
-//         } else if (typeof node[key] === "object") {
-//           traverse(node[key]);
-//         }
-//       }
-//     };
-
-//     traverse(ast);
-//     console.log(Array.from(references.entries()));
-
-//     return Array.from(references.entries()).map(([name, count]) => ({
-//       name,
-//       count,
-//       sourceCell: cellId,
-//     }));
-//   } catch (error) {
-//     console.error("Failed to parse code:", error);
-//     return;
-//   }
-// }
