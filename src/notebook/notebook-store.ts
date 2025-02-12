@@ -4,12 +4,20 @@ import { syncObservable } from "@legendapp/state/sync";
 import { createId } from "@paralleldrive/cuid2";
 import { hashCode } from "../utils/hash";
 
+interface CodeCellOutput {
+  logs: string[];
+  result: unknown;
+}
+
+interface TextCellOutput {
+  html: string;
+}
+
 interface BaseCell {
   id: string;
   type: "text" | "code";
   content: string;
   error: string | null;
-  output: any;
   hash?: string;
   analysis: {
     exports: Array<{
@@ -19,14 +27,18 @@ interface BaseCell {
     }>;
     references: string[]; // All external values this cell references
   };
+  showLogs: boolean;
+  showOutput: boolean;
 }
 
 export interface TextCell extends BaseCell {
   type: "text";
+  output: TextCellOutput | null;
 }
 
 export interface CodeCell extends BaseCell {
   type: "code";
+  output: CodeCellOutput | null;
 }
 
 export type Cell = TextCell | CodeCell;
@@ -42,6 +54,8 @@ function createCell(type: Cell["type"] = "code"): Cell {
       exports: [],
       references: [],
     },
+    showLogs: true,
+    showOutput: true,
   };
 }
 
@@ -122,11 +136,16 @@ export function updateCellContent(id: string, content: string) {
   }
 }
 
-export function updateCellOutput(id: string, output: string) {
+export function updateCellOutput(
+  id: string,
+  output: CodeCellOutput | TextCellOutput,
+) {
   const cells = notebook$.cells.peek();
   const cell = cells.findIndex((c) => c.id === id);
   if (cell !== -1) {
-    notebook$.cells[cell].output.set(JSON.parse(output));
+    // TODO: fix this
+    // @ts-ignore
+    notebook$.cells[cell].output.set(output);
     notebook$.cells[cell].error.set(null);
   }
 }
@@ -173,6 +192,17 @@ export function updateCell(id: string, updates: Partial<Cell>) {
       updates.hash = hashCode(updates.content);
     }
 
+    if (updates.output) {
+      if (currentCell.type === "code" && !isCodeCellOutput(updates.output)) {
+        throw new Error("Invalid output type for code cell");
+      }
+      if (currentCell.type === "text" && !isTextCellOutput(updates.output)) {
+        throw new Error("Invalid output type for text cell");
+      }
+    }
+
+    // TODO: fix this
+    // @ts-ignore
     notebook$.cells[index].set({
       ...currentCell,
       ...updates,
@@ -191,4 +221,28 @@ export function updateCellAnalysis(id: string, analysis: BaseCell["analysis"]) {
     }
     notebook$.cells[index].analysis.set(analysis);
   }
+}
+
+export function toggleCellLogs(id: string) {
+  const index = notebook$.cells.peek().findIndex((c) => c.id === id);
+  if (index !== -1) {
+    const current = notebook$.cells[index].showLogs.peek();
+    notebook$.cells[index].showLogs.set(!current);
+  }
+}
+
+export function toggleCellOutput(id: string) {
+  const index = notebook$.cells.peek().findIndex((c) => c.id === id);
+  if (index !== -1) {
+    const current = notebook$.cells[index].showOutput.peek();
+    notebook$.cells[index].showOutput.set(!current);
+  }
+}
+
+function isCodeCellOutput(output: any): output is CodeCellOutput {
+  return output && Array.isArray(output.logs) && "result" in output;
+}
+
+function isTextCellOutput(output: any): output is TextCellOutput {
+  return output && typeof output.html === "string";
 }

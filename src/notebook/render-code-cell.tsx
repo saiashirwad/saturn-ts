@@ -1,5 +1,5 @@
 import * as React from "react";
-import { memo, useCallback, useRef, useState } from "react";
+import { memo, useCallback, useRef } from "react";
 import { CodemirrorEditor } from "../codemirror/codemirror-editor";
 import { JavaScriptExecutor } from "../runtime/js-executor";
 import {
@@ -7,6 +7,8 @@ import {
   setFocusedCell,
   updateCell,
   updateCellAnalysis,
+  toggleCellLogs,
+  toggleCellOutput,
 } from "./notebook-store";
 import { ChevronDown, ChevronRight, Play } from "lucide-react";
 import { hashCode } from "../utils/hash";
@@ -22,8 +24,6 @@ export const RenderCodeCell = memo(
     if (cell.type !== "code") return null;
 
     const containerRef = useRef<HTMLDivElement>(null);
-    const [showLogs, setShowLogs] = useState(true);
-    const [showResult, setShowResult] = useState(true);
 
     const run = useCallback(
       async (code: string) => {
@@ -143,12 +143,12 @@ export const RenderCodeCell = memo(
               {cell.output.logs?.length > 0 && (
                 <>
                   <CollapsibleHeader
-                    isOpen={showLogs}
-                    onClick={() => setShowLogs(!showLogs)}
+                    isOpen={cell.showLogs}
+                    onClick={() => toggleCellLogs(cell.id)}
                   >
                     Console Output ({cell.output.logs.length} lines)
                   </CollapsibleHeader>
-                  {showLogs && (
+                  {cell.showLogs && (
                     <div className="flex-1 px-2 py-1 font-mono text-xs bg-background text-foreground">
                       {cell.output.logs.map((log: string, i: number) => (
                         <div key={i} className="whitespace-pre-wrap opacity-75">
@@ -164,12 +164,12 @@ export const RenderCodeCell = memo(
                 cell.output.result !== null && (
                   <>
                     <CollapsibleHeader
-                      isOpen={showResult}
-                      onClick={() => setShowResult(!showResult)}
+                      isOpen={cell.showOutput}
+                      onClick={() => toggleCellOutput(cell.id)}
                     >
                       Result
                     </CollapsibleHeader>
-                    {showResult && (
+                    {cell.showOutput && (
                       <div className="flex-1 p-2 font-mono text-sm bg-background text-foreground">
                         <pre>{JSON.stringify(cell.output.result, null, 2)}</pre>
                       </div>
