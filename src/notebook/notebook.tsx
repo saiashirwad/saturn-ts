@@ -6,6 +6,9 @@ import { useKeyboardNav } from "../keyboard/use-keyboard-nav";
 import { useDarkMode } from "../utils/use-dark-mode";
 import { CodeCell, notebook$ } from "./notebook-store";
 import { RenderCodeCell } from "./render-code-cell";
+import { ResizableHandle } from "../components/ui/resizable";
+import { ResizablePanel } from "../components/ui/resizable";
+import { ResizablePanelGroup } from "../components/ui/resizable";
 
 const Notebook = React.memo(function Notebook() {
   return (
@@ -16,7 +19,7 @@ const Notebook = React.memo(function Notebook() {
     >
       <CommandPalette />
       <TopBar />
-      {/* <div className="flex-1">
+      <div className="flex-1">
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={75} minSize={30}>
             <Editor />
@@ -26,8 +29,8 @@ const Notebook = React.memo(function Notebook() {
             <GlobalsPanel />
           </ResizablePanel>
         </ResizablePanelGroup>
-      </div> */}
-      <Editor />
+      </div>
+      {/* <Editor /> */}
     </div>
   );
 });

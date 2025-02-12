@@ -11,7 +11,6 @@ export async function runCode(
   const result = await executor.execute(code, globals);
   const references =
     (await findReferences(code, new Set(globals.map((g) => g.name)), "")) || [];
-  console.log(references);
 
   const exports =
     result.result && typeof result.result === "object"

@@ -31,7 +31,10 @@ export function useCellExecution(cellId: string) {
 
         updateCellAnalysis(cellId, {
           exports: result.exports,
-          references: result.references,
+          references: result.references.map((r) => ({
+            ...r,
+            count: r.dependencies,
+          })),
         });
       } catch (error) {
         const newHash = hashCode(code);
