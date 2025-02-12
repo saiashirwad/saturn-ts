@@ -1,5 +1,5 @@
-import type { Module, Identifier } from "@swc/core";
-import { parseSync } from "@swc/wasm-web";
+import type { Identifier, Module } from "@swc/core";
+import { parse, parseSync } from "@swc/wasm-web";
 
 export async function findReferences(
   code: string,
@@ -13,10 +13,10 @@ export async function findReferences(
 
   // TODO: fix this
   try {
-    const ast = parseSync(_code, {
+    const ast = await parse(_code, {
       syntax: "typescript",
       tsx: true,
-    }) as Module;
+    });
 
     const visitIdentifier = (node: Identifier) => {
       if (globals.find((g) => g.name === node.value)) {
@@ -42,6 +42,7 @@ export async function findReferences(
     };
 
     traverse(ast);
+    console.log(Array.from(references.entries()));
 
     return Array.from(references.entries()).map(([name, count]) => ({
       name,
