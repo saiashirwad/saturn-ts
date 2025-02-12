@@ -59,14 +59,11 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     const wrappedCode = `
       return (async () => {
         try {
-          console.log("Starting execution...");
           const result = await (async () => {
             ${code}
           })();
-          console.log("Execution result:", result);
           return result;
         } catch (err) {
-          console.error("Execution error:", err);
           throw err;
         }
       })();

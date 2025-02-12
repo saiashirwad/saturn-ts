@@ -1,5 +1,5 @@
 import * as React from "react";
-import { memo, useCallback, useRef } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import { CodemirrorEditor } from "../codemirror/codemirror-editor";
 import { JavaScriptExecutor } from "../runtime/js-executor";
 import {
@@ -8,6 +8,7 @@ import {
   updateCell,
   updateCellAnalysis,
 } from "./notebook-store";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 interface CodeCellProps {
   cell: CodeCell;
@@ -20,6 +21,8 @@ export const RenderCodeCell = memo(
     if (cell.type !== "code") return null;
 
     const containerRef = useRef<HTMLDivElement>(null);
+    const [showLogs, setShowLogs] = useState(true);
+    const [showResult, setShowResult] = useState(true);
 
     const run = useCallback(
       async (code: string) => {
@@ -61,6 +64,28 @@ export const RenderCodeCell = memo(
       [cell.id],
     );
 
+    const CollapsibleHeader = ({
+      isOpen,
+      onClick,
+      children,
+    }: {
+      isOpen: boolean;
+      onClick: () => void;
+      children: React.ReactNode;
+    }) => (
+      <button
+        onClick={onClick}
+        className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:bg-accent/50 w-full text-left border-t border-border"
+      >
+        {isOpen ? (
+          <ChevronDown className="h-3 w-3" />
+        ) : (
+          <ChevronRight className="h-3 w-3" />
+        )}
+        {children}
+      </button>
+    );
+
     return (
       <div
         ref={ref}
@@ -97,20 +122,40 @@ export const RenderCodeCell = memo(
           {cell.output && (
             <div className="flex flex-col">
               {cell.output.logs?.length > 0 && (
-                <div className="flex-1 p-2 font-mono text-sm bg-background text-foreground border-t border-border">
-                  {cell.output.logs.map((log: string, i: number) => (
-                    <div key={i} className="whitespace-pre-wrap">
-                      {log}
+                <>
+                  <CollapsibleHeader
+                    isOpen={showLogs}
+                    onClick={() => setShowLogs(!showLogs)}
+                  >
+                    Console Output ({cell.output.logs.length} lines)
+                  </CollapsibleHeader>
+                  {showLogs && (
+                    <div className="flex-1 px-2 py-1 font-mono text-xs bg-background text-foreground">
+                      {cell.output.logs.map((log: string, i: number) => (
+                        <div key={i} className="whitespace-pre-wrap opacity-75">
+                          {log}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
 
               {cell.output.result !== undefined &&
                 cell.output.result !== null && (
-                  <div className="flex-1 p-2 font-mono text-sm bg-background text-foreground border-t border-border">
-                    <pre>{JSON.stringify(cell.output.result, null, 2)}</pre>
-                  </div>
+                  <>
+                    <CollapsibleHeader
+                      isOpen={showResult}
+                      onClick={() => setShowResult(!showResult)}
+                    >
+                      Result
+                    </CollapsibleHeader>
+                    {showResult && (
+                      <div className="flex-1 p-2 font-mono text-sm bg-background text-foreground">
+                        <pre>{JSON.stringify(cell.output.result, null, 2)}</pre>
+                      </div>
+                    )}
+                  </>
                 )}
             </div>
           )}
@@ -128,58 +173,3 @@ export const RenderCodeCell = memo(
     );
   },
 );
-
-// export async function runCode(
-//   code: string,
-//   globals: Record<string, any>,
-//   onResult: (result: {
-//     type: "success" | "error";
-//     output: any;
-//     error: any;
-//   }) => void,
-// ) {
-//   const executor = new JavaScriptExecutor();
-
-//   try {
-//     const wrappedCode = `
-//       ${code}
-//     `;
-
-//     const result = await executor.execute(wrappedCode);
-//     console.log(result);
-
-//     onResult({
-//       type: "success",
-//       output: result.result as Record<string, any>,
-//       error: null,
-//     });
-
-//     if (result.logs.length > 0) {
-//       onResult({
-//         type: "success",
-//         output: {
-//           ...(result.result as Record<string, any>),
-//           logs: result.logs,
-//         },
-//         error: null,
-//       });
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     onResult({
-//       type: "error",
-//       output: {
-//         error: error instanceof Error ? error.message : String(error),
-//         logs: (error as ExecutionError)?.logs || [],
-//       },
-//       error: error,
-//     });
-//   } finally {
-//     executor.terminate();
-//   }
-// }
-
-// interface ExecutionError {
-//   error: string;
-//   logs: string[];
-// }
