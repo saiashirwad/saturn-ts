@@ -11,6 +11,7 @@ const code = `
   function display() {
     console.log(doubled());
   }
+  display();
 `;
 
 const reactiveVariables = new Set<string>();
