@@ -21,12 +21,16 @@ export function initializeTheme() {
   if (savedTheme) {
     setTheme(savedTheme);
   } else {
+    setTheme(systemPrefersDark ? "dark" : "light");
     // Don't save system preference to localStorage
-    const theme = systemPrefersDark ? "dark" : "light";
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
   }
+
+  // Add listener for system theme changes
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  mediaQuery.addEventListener("change", (e) => {
+    // Only update if no saved preference
+    if (!localStorage.getItem("theme")) {
+      setTheme(e.matches ? "dark" : "light");
+    }
+  });
 }

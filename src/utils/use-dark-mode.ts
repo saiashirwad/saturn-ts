@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
+import { setTheme as setThemeGlobal } from "../lib/theme";
 
 export type Theme = "light" | "dark";
 
 export function useDarkMode() {
   const [theme, setThemeState] = useState<Theme>(() => {
     // Check for saved theme first
-    const saved = localStorage.getItem("theme") as Theme | null;
-    if (saved) return saved;
+    const savedTheme = localStorage.getItem("theme") as Theme | null;
+    if (savedTheme) return savedTheme;
 
     // Otherwise use system preference
     return window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -23,26 +24,29 @@ export function useDarkMode() {
     }
   }, [theme]);
 
-  // Listen for system theme changes
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setThemeState(newTheme);
+    setThemeGlobal(newTheme);
+    // Save to localStorage since this is a manual preference
+    localStorage.setItem("theme", newTheme);
+  };
+
+  // Sync with system changes if no saved preference
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-    const handleChange = () => {
-      // Only update if no saved preference
+    const handleChange = (e: MediaQueryListEvent) => {
       if (!localStorage.getItem("theme")) {
-        setThemeState(mediaQuery.matches ? "dark" : "light");
+        const newTheme = e.matches ? "dark" : "light";
+        setThemeState(newTheme);
+        setThemeGlobal(newTheme);
       }
     };
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setThemeState(newTheme);
-    localStorage.setItem("theme", newTheme);
-  };
 
   return { theme, toggleTheme };
 }
