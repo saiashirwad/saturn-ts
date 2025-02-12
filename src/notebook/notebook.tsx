@@ -2,7 +2,7 @@ import { use$ } from "@legendapp/state/react";
 import * as React from "react";
 import { CommandPalette } from "../command/command-palette";
 import { useKeyboardNav } from "../keyboard/use-keyboard-nav";
-import { addCell, notebook$ } from "./notebook-store";
+import { notebook$ } from "./notebook-store";
 import { RenderCodeCell } from "./render-code-cell";
 
 export function Notebook() {

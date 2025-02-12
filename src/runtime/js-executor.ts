@@ -3,6 +3,7 @@ import type { WorkerResponse } from "./js-worker";
 interface ExecutionResult {
   result: unknown;
   logs: string[];
+  exports?: string[];
 }
 
 interface ExecutionError {
@@ -39,7 +40,7 @@ export class JavaScriptExecutor {
   }
 
   private handleWorkerMessage(event: MessageEvent<WorkerResponse>) {
-    const { id, success, result, error, logs } = event.data;
+    const { id, success, result, error, logs, exports } = event.data;
     const execution = this.executionMap.get(id);
 
     if (execution) {
@@ -47,7 +48,7 @@ export class JavaScriptExecutor {
       this.executionMap.delete(id);
 
       if (success) {
-        execution.resolve({ result, logs });
+        execution.resolve({ result, logs, exports });
       } else {
         execution.reject({
           error: error ?? "Unknown error",

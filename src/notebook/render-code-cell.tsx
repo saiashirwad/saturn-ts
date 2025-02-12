@@ -19,6 +19,8 @@ interface CodeCellProps {
 
 export const RenderCodeCell = memo(
   ({ cell, isFocused, ref }: CodeCellProps) => {
+    if (cell.type !== "code") return null;
+
     const globals = use$(notebook$.globalObject);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -28,10 +30,22 @@ export const RenderCodeCell = memo(
           const executor = new JavaScriptExecutor();
           const result = await executor.execute(code);
 
-          updateCell(cell.id, {
-            output: result.result,
-            error: null,
-          });
+          // Only update output if there's actual output (not just exports)
+          if (
+            result.result !== undefined &&
+            result.result !== null &&
+            (!result.exports || result.exports.length === 0)
+          ) {
+            updateCell(cell.id, {
+              output: result.result,
+              error: null,
+            });
+          } else {
+            updateCell(cell.id, {
+              output: null,
+              error: null,
+            });
+          }
 
           // Register any exported values as globals
           if (result.result && typeof result.result === "object") {
@@ -73,6 +87,12 @@ export const RenderCodeCell = memo(
             onBlur={async () => {
               await run(cell.content);
             }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && event.ctrlKey) {
+                event.preventDefault();
+                run(cell.content);
+              }
+            }}
           />
 
           {cell.output && (
@@ -99,57 +119,57 @@ export const RenderCodeCell = memo(
   },
 );
 
-export async function runCode(
-  code: string,
-  globals: Record<string, any>,
-  onResult: (result: {
-    type: "success" | "error";
-    output: any;
-    error: any;
-  }) => void,
-) {
-  const executor = new JavaScriptExecutor();
+// export async function runCode(
+//   code: string,
+//   globals: Record<string, any>,
+//   onResult: (result: {
+//     type: "success" | "error";
+//     output: any;
+//     error: any;
+//   }) => void,
+// ) {
+//   const executor = new JavaScriptExecutor();
 
-  try {
-    const wrappedCode = `
-      ${code}
-    `;
+//   try {
+//     const wrappedCode = `
+//       ${code}
+//     `;
 
-    const result = await executor.execute(wrappedCode);
-    console.log(result);
+//     const result = await executor.execute(wrappedCode);
+//     console.log(result);
 
-    onResult({
-      type: "success",
-      output: result.result as Record<string, any>,
-      error: null,
-    });
+//     onResult({
+//       type: "success",
+//       output: result.result as Record<string, any>,
+//       error: null,
+//     });
 
-    if (result.logs.length > 0) {
-      onResult({
-        type: "success",
-        output: {
-          ...(result.result as Record<string, any>),
-          logs: result.logs,
-        },
-        error: null,
-      });
-    }
-  } catch (error) {
-    console.log(error);
-    onResult({
-      type: "error",
-      output: {
-        error: error instanceof Error ? error.message : String(error),
-        logs: (error as ExecutionError)?.logs || [],
-      },
-      error: error,
-    });
-  } finally {
-    executor.terminate();
-  }
-}
+//     if (result.logs.length > 0) {
+//       onResult({
+//         type: "success",
+//         output: {
+//           ...(result.result as Record<string, any>),
+//           logs: result.logs,
+//         },
+//         error: null,
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     onResult({
+//       type: "error",
+//       output: {
+//         error: error instanceof Error ? error.message : String(error),
+//         logs: (error as ExecutionError)?.logs || [],
+//       },
+//       error: error,
+//     });
+//   } finally {
+//     executor.terminate();
+//   }
+// }
 
-interface ExecutionError {
-  error: string;
-  logs: string[];
-}
+// interface ExecutionError {
+//   error: string;
+//   logs: string[];
+// }
