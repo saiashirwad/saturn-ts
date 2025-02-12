@@ -84,7 +84,7 @@ export class JavaScriptExecutor {
 
   async execute(
     code: string,
-    globals: Record<string, any> = {},
+    globals: Array<{ name: string; value: any }> = [],
     timeoutMs = 5000,
   ): Promise<ExecutionResult> {
     if (!this.worker) {

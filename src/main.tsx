@@ -1,10 +1,13 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { ErrorScreen, LoaderScreen } from "./components/swc-loader";
+import { useSwcInit } from "./hooks/use-swc-init";
 import "./index.css";
+import { queryClient } from "./lib/query-client";
 import { initializeTheme } from "./lib/theme";
 import { Notebook } from "./notebook/notebook";
-import { LoaderScreen, ErrorScreen } from "./components/swc-loader";
-import { useSwcInit } from "./hooks/use-swc-init";
 
 initializeTheme();
 
@@ -28,6 +31,9 @@ function App() {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <App />
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   </StrictMode>,
 );

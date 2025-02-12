@@ -3,7 +3,7 @@ import { runtimeContext } from "./context";
 export interface WorkerMessage {
   id: string;
   code: string;
-  globals: Record<string, any>;
+  globals: Array<{ name: string; value: any }>;
 }
 
 export interface WorkerResponse {
@@ -18,14 +18,11 @@ export interface WorkerResponse {
 
 export type ContextType = typeof runtimeContext;
 
-// Initialize logs array
-(self as any).logs = [];
-
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   const { id, code, globals } = e.data;
-  (self as any).logs = []; // Reset logs for new execution
+  console.log({ id, code, globals });
+  const logs: string[] = [];
 
-  // Override console.log to stream logs
   const originalLog = console.log;
   const originalError = console.error;
 
@@ -35,9 +32,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
         if (arg instanceof Error) {
           return `${arg.name}: ${arg.message}\n${arg.stack}`;
         }
-        return typeof arg === "object"
-          ? JSON.stringify(arg, null, 2)
-          : String(arg);
+        return arg;
       })
       .join(" ");
 
@@ -60,19 +55,17 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     const wrappedCode = `
       return (async () => {
         try {
-          // Inject globals into scope
-          ${Object.entries(globals)
-            .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
+          ${globals
+            .map(
+              ({ name, value }) => `const ${name} = ${JSON.stringify(value)};`,
+            )
             .join("\n")}
 
-          // Execute code and capture last expression result
           let __lastExpressionResult;
           __lastExpressionResult = await (async () => {
             ${code}
           })();
-          
-          // If the code has an explicit return/export, it will be returned
-          // Otherwise, return the last expression result
+
           return __lastExpressionResult;
         } catch (err) {
           throw err;
@@ -82,7 +75,6 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
     const context = {
       ...runtimeContext,
-      ...globals,
     };
 
     const fn = new Function(...Object.keys(context), wrappedCode);
@@ -93,7 +85,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
       type: "result",
       success: true,
       result,
-      logs: (self as any).logs,
+      logs,
     } as WorkerResponse);
   } catch (error) {
     const errorMessage =
@@ -101,14 +93,12 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
         ? `${error.name}: ${error.message}\n${error.stack}`
         : String(error);
 
-    console.error("Worker caught error:", errorMessage);
-
     self.postMessage({
       id,
       type: "error",
       success: false,
       error: errorMessage,
-      logs: (self as any).logs,
+      logs,
     } as WorkerResponse);
   } finally {
     console.log = originalLog;
