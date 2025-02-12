@@ -77,7 +77,7 @@ export const CommandPalette = observer(() => {
           )}
         </CommandGroup>
 
-        <CommandGroup heading="Cells">
+        {/* <CommandGroup heading="Cells">
           <For each={notebook$.cells}>
             {(cell$, index) => {
               const cell = cell$.get();
@@ -101,7 +101,7 @@ export const CommandPalette = observer(() => {
               );
             }}
           </For>
-        </CommandGroup>
+        </CommandGroup> */}
 
         <CommandGroup heading="Global Variables">
           <For each={command$.globalVariables}>

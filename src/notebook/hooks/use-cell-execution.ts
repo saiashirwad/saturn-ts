@@ -7,6 +7,7 @@ import {
   updateCellAnalysis,
 } from "../notebook-store";
 import { runCode } from "../../runtime/run-code";
+import { formatCode } from "../../utils/format-code";
 
 export function useCellExecution(cellId: string) {
   return useCallback(
@@ -15,12 +16,15 @@ export function useCellExecution(cellId: string) {
         const globals = notebook$.globals.get();
         const newHash = hashCode(code);
 
+        console.log(code);
+        const prettyCode = await formatCode(code, "typescript");
+
         const result = await runCode(code, globals, (message) => {
           addCellLog(cellId, message);
         });
 
         updateCell(cellId, {
-          content: code,
+          content: prettyCode,
           hash: newHash,
           output: {
             logs: result.logs,

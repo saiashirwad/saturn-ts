@@ -6,6 +6,10 @@ export async function formatCode(
   code: string,
   parser: "typescript" | "babel" = "typescript",
 ) {
+  if (!code) {
+    return "";
+  }
+
   try {
     const formatted = await prettier.format(code, {
       parser,
@@ -15,11 +19,24 @@ export async function formatCode(
       trailingComma: "all",
       printWidth: 80,
       tabWidth: 2,
+      requirePragma: false,
+      insertPragma: false,
+      bracketSpacing: true,
+      arrowParens: "always",
+      endOfLine: "lf",
+      // Allow formatting even with syntax errors
+      rangeStart: 0,
+      rangeEnd: Infinity,
+      // Don't error on invalid code
+      allowParseErrors: true,
     });
 
     return formatted.trim();
   } catch (error) {
+    // Log the actual error for debugging
     console.warn("Failed to format code:", error);
-    return code; // Return original code if formatting fails
+
+    // Return original code if formatting fails
+    return code.trim();
   }
 }

@@ -17,7 +17,6 @@
     "@codemirror/lang-javascript": "^6.2.2",
     "@legendapp/state": "^3.0.0-beta.26",
     "@locker/near-membrane-dom": "^0.14.0",
-    "@million/lint": "^1.0.14",
     "@paralleldrive/cuid2": "^2.2.2",
     "@radix-ui/react-dialog": "^1.1.6",
     "@tanstack/react-query": "^5.66.0",
@@ -30,7 +29,6 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
     "idb-keyval": "^6.2.1",
-    "immer": "^10.1.1",
     "lucide-react": "^0.474.0",
     "prettier": "^3.5.0",
     "react": "^19.0.0",
@@ -41,7 +39,6 @@
     "sucrase": "^3.35.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
-    "ts-blank-space": "^0.5.1",
     "ts-pattern": "^5.6.2"
   },
   "devDependencies": {
