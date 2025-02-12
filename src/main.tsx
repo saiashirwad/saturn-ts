@@ -1,13 +1,8 @@
-import { scan } from "react-scan";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { initializeTheme } from "./lib/theme";
 import "./index.css";
+import { initializeTheme } from "./lib/theme";
 import { Notebook } from "./notebook/notebook";
-
-scan({
-  enabled: true,
-});
 
 // Initialize theme before rendering
 initializeTheme();
