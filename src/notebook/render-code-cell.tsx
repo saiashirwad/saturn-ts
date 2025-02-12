@@ -8,7 +8,7 @@ import {
   updateCell,
   updateCellAnalysis,
 } from "./notebook-store";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Play } from "lucide-react";
 import { hashCode } from "../utils/hash";
 
 interface CodeCellProps {
@@ -109,25 +109,34 @@ export const RenderCodeCell = memo(
           role="textbox"
           aria-label="Code editor"
         >
-          <CodemirrorEditor
-            isFocused={isFocused}
-            value={cell.content}
-            onChange={(value) => {
-              updateCell(cell.id, { content: value ?? "" });
-            }}
-            onFocus={() => {
-              setFocusedCell(cell.id);
-            }}
-            onBlur={async () => {
-              await run(cell.content);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && event.shiftKey) {
-                event.preventDefault();
-                run(cell.content);
-              }
-            }}
-          />
+          <div className="relative">
+            <button
+              onClick={() => run(cell.content)}
+              className="absolute right-2 top-2 p-1 rounded hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors z-50"
+              title="Run cell (Shift+Enter)"
+            >
+              <Play className="h-4 w-4" />
+            </button>
+            <CodemirrorEditor
+              isFocused={isFocused}
+              value={cell.content}
+              onChange={(value) => {
+                updateCell(cell.id, { content: value ?? "" });
+              }}
+              onFocus={() => {
+                setFocusedCell(cell.id);
+              }}
+              // onBlur={async () => {
+              //   await run(cell.content);
+              // }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && event.shiftKey) {
+                  event.preventDefault();
+                  run(cell.content);
+                }
+              }}
+            />
+          </div>
 
           {cell.output && (
             <div className="flex flex-col">
