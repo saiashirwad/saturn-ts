@@ -1,13 +1,13 @@
 import { useCallback } from "react";
 // @ts-ignore
-import { parse } from "sucrase/dist/parser";
-// @ts-ignore
 import { TokenType as tt } from "sucrase/dist/parser/tokenizer/types";
 import { JavaScriptExecutor } from "../../runtime/js-executor";
 import { hashCode } from "../../utils/hash";
 import { notebook$, updateCell, updateCellAnalysis } from "../notebook-store";
+import { parseSync } from "@swc/wasm-web";
+import type { Identifier, Module } from "@swc/core";
 
-function findReferences(
+async function findReferences(
   code: string,
   globals: Array<{ name: string }>,
   cellId: string,
@@ -16,21 +16,36 @@ function findReferences(
   const globalNames = new Set(globals.map((g) => g.name));
 
   try {
-    const ast = parse(code, true, true, false);
+    const ast = parseSync(code, {
+      syntax: "typescript",
+      tsx: true,
+    }) as Module;
 
-    for (const token of ast.tokens) {
-      if (token.type === tt.name && globalNames.has(token.value)) {
-        console.log(token);
-        console.log("Found reference to global:", token.value);
-        // Skip if this is a declaration
-        const nextToken = ast.tokens[ast.tokens.indexOf(token) + 1];
-        if (nextToken && nextToken.type === tt.eq) continue;
-
-        // Count the reference
-        const count = references.get(token.value) || 0;
-        references.set(token.value, count + 1);
+    const visitIdentifier = (node: Identifier) => {
+      if (globalNames.has(node.value)) {
+        const count = references.get(node.value) || 0;
+        references.set(node.value, count + 1);
       }
-    }
+    };
+
+    // Traverse the AST manually since we don't have access to @swc/core traverse
+    const traverse = (node: any) => {
+      if (!node || typeof node !== "object") return;
+
+      if (node.type === "Identifier") {
+        visitIdentifier(node as Identifier);
+      }
+
+      for (const key in node) {
+        if (Array.isArray(node[key])) {
+          node[key].forEach(traverse);
+        } else if (typeof node[key] === "object") {
+          traverse(node[key]);
+        }
+      }
+    };
+
+    traverse(ast);
 
     return Array.from(references.entries()).map(([name, count]) => ({
       name,
@@ -38,24 +53,8 @@ function findReferences(
       sourceCell: cellId,
     }));
   } catch (error) {
-    console.warn("AST parsing failed:", error);
-    // Fallback to simple regex matching if parsing fails
-    const pattern = new RegExp(
-      `\\b(${Array.from(globalNames).join("|")})\\b`,
-      "g",
-    );
-    const matches = code.match(pattern) || [];
-
-    matches.forEach((match) => {
-      const count = references.get(match) || 0;
-      references.set(match, count + 1);
-    });
-
-    return Array.from(references.entries()).map(([name, count]) => ({
-      name,
-      count,
-      sourceCell: cellId,
-    }));
+    console.error("Failed to parse code:", error);
+    return;
   }
 }
 
@@ -68,13 +67,9 @@ async function runCode(
     globals.map(({ name, value }) => [name, value]),
   );
 
-  // Execute with globals injected into scope
   const result = await executor.execute(code, globalScope);
+  const references = (await findReferences(code, globals, "")) || [];
 
-  // Find references before execution
-  const references = findReferences(code, globals, "");
-
-  // Only try to extract exports if result is an object
   const exports =
     result.result && typeof result.result === "object"
       ? Object.entries(result.result).map(([name, value]) => ({
@@ -101,12 +96,6 @@ export function useCellExecution(cellId: string) {
 
         const result = await runCode(code, globals);
 
-        console.log({ result });
-        updateCellAnalysis(cellId, {
-          exports: result.exports,
-          references: result.references,
-        });
-
         updateCell(cellId, {
           content: code,
           hash: newHash,
@@ -115,6 +104,11 @@ export function useCellExecution(cellId: string) {
             result: result.result,
           },
           error: null,
+        });
+
+        updateCellAnalysis(cellId, {
+          exports: result.exports,
+          references: result.references,
         });
       } catch (error) {
         const newHash = hashCode(code);
