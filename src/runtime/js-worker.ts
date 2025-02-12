@@ -44,15 +44,14 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   };
 
   try {
-    // Wrap code in async IIFE and handle exports
+    // Wrap code in async IIFE
     const wrappedCode = `
-      let exports = {};
-      ${code};
-      return exports;
+      return (async () => {
+        ${code}
+      })();
     `;
 
     const fn = new Function(...Object.keys(runtimeContext), wrappedCode);
-
     const result = await fn(...Object.values(runtimeContext));
 
     self.postMessage({
@@ -60,7 +59,6 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
       type: "result",
       success: true,
       result,
-      exports: Object.keys(result || {}),
       logs: (self as any).logs,
     } as WorkerResponse);
   } catch (error) {
