@@ -50,22 +50,22 @@ export function CommandPalette() {
         <CommandGroup heading="Actions">
           <CommandItem
             onSelect={() => {
-              addCell("reactive");
+              addCell("code");
               commandPalette$.isOpen.set(false);
             }}
           >
             <Search className="w-4 h-4 mr-2" />
-            New Reactive Cell
+            New Code Cell
           </CommandItem>
 
           <CommandItem
             onSelect={() => {
-              addCell("non-reactive");
+              addCell("text");
               commandPalette$.isOpen.set(false);
             }}
           >
             <Search className="w-4 h-4 mr-2" />
-            Non Reactive
+            New Text Cell
           </CommandItem>
         </CommandGroup>
 
@@ -93,7 +93,6 @@ export function CommandPalette() {
             <CommandItem
               key={name}
               onSelect={() => {
-                // Could add action here if needed
                 commandPalette$.isOpen.set(false);
               }}
               className="flex justify-between items-center"

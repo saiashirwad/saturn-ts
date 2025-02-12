@@ -21,26 +21,7 @@ export function Notebook() {
 
 function TopBar() {
   return (
-    <div className="flex items-center justify-between px-2 py-1 border-b border-border">
-      <div className="flex items-center gap-3">
-        <button
-          className="p-1 text-muted-foreground hover:text-foreground"
-          onClick={() => addCell("reactive")}
-          title="Add cell (⌘K)"
-          aria-label="Add new code cell"
-        >
-          Reactive
-        </button>
-        <button
-          className="p-1 text-muted-foreground hover:text-foreground"
-          onClick={() => addCell("non-reactive")}
-          title="Add cell (⌘K)"
-          aria-label="Add new code cell"
-        >
-          Non-Reactive Cell
-        </button>
-      </div>
-    </div>
+    <div className="flex items-center justify-between px-2 py-1 border-b border-border"></div>
   );
 }
 
