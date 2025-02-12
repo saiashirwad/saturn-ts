@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { runCode } from "../../runtime/run-code";
 import { hashCode } from "../../utils/hash";
 import {
   addCellLog,
@@ -6,8 +7,6 @@ import {
   updateCell,
   updateCellAnalysis,
 } from "../notebook-store";
-import { runCode } from "../../runtime/run-code";
-import { formatCode } from "../../utils/format-code";
 
 export function useCellExecution(cellId: string) {
   return useCallback(
