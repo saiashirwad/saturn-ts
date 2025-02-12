@@ -20,7 +20,6 @@ export type ContextType = typeof runtimeContext;
 
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   const { id, code, globals } = e.data;
-  console.log({ id, code, globals });
   const logs: string[] = [];
 
   const originalLog = console.log;

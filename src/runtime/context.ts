@@ -1,3 +1,25 @@
+export function createRuntimeContext(context: Record<string, any>) {
+  return {
+    console,
+    setTimeout,
+    clearTimeout,
+    setInterval,
+    clearInterval,
+    Math,
+    Date,
+    JSON,
+    String,
+    Number,
+    Boolean,
+    Array,
+    Object,
+    Error,
+    Promise,
+    RegExp,
+    ...context,
+  };
+}
+
 const StdLib = {
   fetch,
   sleep: (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)),
@@ -34,29 +56,4 @@ const StdLib = {
   },
 };
 
-export function createRuntimeContext(context: Record<string, any>) {
-  return {
-    console,
-    setTimeout,
-    clearTimeout,
-    setInterval,
-    clearInterval,
-    Math,
-    Date,
-    JSON,
-    String,
-    Number,
-    Boolean,
-    Array,
-    Object,
-    Error,
-    Promise,
-    RegExp,
-    ...context,
-    ...StdLib,
-  };
-}
-
-export const runtimeContext = createRuntimeContext({
-  // Add any custom context here
-});
+export const runtimeContext = createRuntimeContext(StdLib);

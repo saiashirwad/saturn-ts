@@ -50,7 +50,7 @@ export class JavaScriptExecutor {
         if (log) {
           execution.logs.push(log);
           // Also log to console for development visibility
-          console.log(`[Cell ${id}]:`, log);
+          console.log(log);
         }
         break;
 
@@ -66,8 +66,7 @@ export class JavaScriptExecutor {
       case "error":
         clearTimeout(execution.timeout);
         this.executionMap.delete(id);
-        // Log the error to console for development visibility
-        console.error(`[Cell ${id}] Execution Error:`, error);
+        console.error(error);
         execution.reject({
           error: error ?? "Unknown error",
           logs: execution.logs,
@@ -85,7 +84,7 @@ export class JavaScriptExecutor {
   async execute(
     code: string,
     globals: Array<{ name: string; value: any }> = [],
-    timeoutMs = 5000,
+    timeoutMs = 100000,
   ): Promise<ExecutionResult> {
     if (!this.worker) {
       this.initializeWorker();
