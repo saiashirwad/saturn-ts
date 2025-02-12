@@ -1,5 +1,5 @@
 import { use$ } from "@legendapp/state/react";
-import { Search, Variable } from "lucide-react";
+import { Search, Variable, Trash2 } from "lucide-react";
 import * as React from "react";
 import {
   CommandDialog,
@@ -9,13 +9,19 @@ import {
   CommandItem,
   CommandList,
 } from "../components/ui/command";
-import { addCell, notebook$, setFocusedCell } from "../notebook/notebook-store";
+import {
+  addCell,
+  notebook$,
+  setFocusedCell,
+  deleteCell,
+} from "../notebook/notebook-store";
 import { command$, commandPalette$ } from "./command-store";
 
 export function CommandPalette() {
   const isOpen = use$(commandPalette$.isOpen);
   const cells = use$(notebook$.cells);
   const globalVariables = use$(command$.commands);
+  const focusedCell = use$(notebook$.focusedCellId);
 
   const globals = React.useMemo(() => {
     return Object.fromEntries(
@@ -67,6 +73,18 @@ export function CommandPalette() {
             <Search className="w-4 h-4 mr-2" />
             New Text Cell
           </CommandItem>
+
+          {focusedCell && (
+            <CommandItem
+              onSelect={() => {
+                deleteCell(focusedCell);
+                commandPalette$.isOpen.set(false);
+              }}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Cell
+            </CommandItem>
+          )}
         </CommandGroup>
 
         <CommandGroup heading="Cells">
