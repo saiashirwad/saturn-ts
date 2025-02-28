@@ -78,9 +78,8 @@ interface NotebookState {
 export const notebook$ = observable<NotebookState>({
   cells: [],
   focusedCellId: null,
-  globals: () => {
-    const cells = notebook$.cells.get();
-    return cells.flatMap(
+  globals: () =>
+    notebook$.cells.get().flatMap(
       (cell) =>
         cell.analysis?.exports?.map((exp) => ({
           name: exp.name,
@@ -88,8 +87,7 @@ export const notebook$ = observable<NotebookState>({
           type: exp.type,
           sourceCell: cell.id,
         })) ?? [],
-    );
-  },
+    ),
 });
 
 syncObservable(notebook$, {

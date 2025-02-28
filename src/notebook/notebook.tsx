@@ -1,16 +1,15 @@
 import { For, observer, use$ } from "@legendapp/state/react";
 import { Variable } from "lucide-react";
-import * as React from "react";
+import { memo, useMemo } from "react";
 import { CommandPalette } from "../command/command-palette";
 import { useKeyboardNav } from "../keyboard/use-keyboard-nav";
-import { useDarkMode } from "../utils/use-dark-mode";
 import { CodeCell, notebook$ } from "./notebook-store";
 import { RenderCodeCell } from "./render-code-cell";
 import { ResizableHandle } from "../components/ui/resizable";
 import { ResizablePanel } from "../components/ui/resizable";
 import { ResizablePanelGroup } from "../components/ui/resizable";
 
-const Notebook = React.memo(function Notebook() {
+export const Notebook = memo(function Notebook() {
   return (
     <div
       className="h-screen flex flex-col bg-background text-foreground"
@@ -18,7 +17,6 @@ const Notebook = React.memo(function Notebook() {
       aria-label="Notebook editor"
     >
       <CommandPalette />
-      {/* <TopBar /> */}
       <div className="flex-1">
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={75} minSize={30}>
@@ -30,24 +28,6 @@ const Notebook = React.memo(function Notebook() {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
-      {/* <Editor /> */}
-    </div>
-  );
-});
-
-export { Notebook };
-
-const TopBar = React.memo(function TopBar() {
-  const { theme, toggleTheme } = useDarkMode();
-
-  return (
-    <div className="flex items-center justify-between px-2 py-1 border-b border-border">
-      <button
-        onClick={toggleTheme}
-        className="px-3 py-1 rounded bg-secondary hover:bg-secondary/80"
-      >
-        {theme === "dark" ? "🌞" : "🌙"}
-      </button>
     </div>
   );
 });
@@ -85,7 +65,7 @@ const GlobalsPanel = observer(() => {
   const globals = use$(notebook$.globals);
   const cells = use$(notebook$.cells);
 
-  const globalRefs = React.useMemo(() => {
+  const globalRefs = useMemo(() => {
     const refs = new Map<string, number>();
 
     cells.forEach((cell) => {
