@@ -114,3 +114,5 @@ const GlobalsPanel = observer(() => {
     </div>
   );
 });
+
+console.log("hi")
